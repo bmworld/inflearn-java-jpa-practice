@@ -10,12 +10,14 @@
       <property name="javax.persistence.jdbc.password" value="0000"/>
       <!-- H2 저장한 설정 -> Generic H2 (Server) / JDBC URL 경로와 동일하게 맞춘다. -->
       <property name="javax.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/~/test"/>
-      <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle12cDialect"/>
+      <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+<!--      <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle12cDialect"/>-->
       <!-- 옵션 -->
       <property name="hibernate.show_sql" value="true"/> <!-- 의미: SQLquery 볼거야 말거야-->
       <property name="hibernate.format_sql" value="true"/>
       <property name="hibernate.use_sql_comments" value="true"/>
-      <!--<property name="hibernate.hbm2ddl.auto" value="create" />-->
+      <property name="hibernate.jdbc.batch_size" value="10"/>
+      <property name="hibernate.hbm2ddl.auto" value="create" />
     </properties>
   </persistence-unit>
 </persistence>
