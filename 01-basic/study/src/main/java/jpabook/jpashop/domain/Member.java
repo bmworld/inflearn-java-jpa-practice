@@ -43,7 +43,16 @@ public class Member {
     return team;
   }
 
+  // JPA에서 FK의 양방향 연관관계를 반드시 이해해야한다.
   public void setTeam(Team team) {
     this.team = team;
   }
+
+
+//  public void changeTeam(Team team) {
+//    this.team = team;
+//    team.getMembers().add(this);
+//  }
+
+
 }

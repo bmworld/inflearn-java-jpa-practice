@@ -22,6 +22,11 @@ public class Team {
   @OneToMany(mappedBy = "team") // JPA의 핵심 > 객체와 테이블 간에 연관관계 맺는 차이점을 이해해야한다. 반드시.
   private List<Member> members = new ArrayList<Member>();
 
+  public void addMember(Member member) {
+    member.setTeam(this);
+    members.add(member);
+  }
+
   public List<Member> getMembers() {
     return members;
   }
@@ -43,6 +48,9 @@ public class Team {
   }
 
   public void setName(String name) {
+
+
     this.name = name;
   }
+
 }
