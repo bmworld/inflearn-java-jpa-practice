@@ -1,8 +1,6 @@
 package jpabook.jpashop.domain;
 
 
-import jpabook.jpashop.domain.member.Member;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

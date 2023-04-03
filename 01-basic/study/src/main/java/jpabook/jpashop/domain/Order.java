@@ -1,8 +1,6 @@
 package jpabook.jpashop.domain;
 
 
-import jpabook.jpashop.domain.member.Member;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,6 +19,10 @@ public class Order {
   @ManyToOne
   @JoinColumn(name="MEMBER_ID")
   private Member member;
+
+  @OneToOne
+  @JoinColumn(name="DELIVERY_ID")
+  private Delivery delivery;
 
   @OneToMany(mappedBy = "order") // 양방향 바인딩하고, 연관관계의 주인은, OrderItem에 있는 order이므로, 해당 주인을 설정해준다.
   private List<OrderItem> orderItems = new ArrayList<>();

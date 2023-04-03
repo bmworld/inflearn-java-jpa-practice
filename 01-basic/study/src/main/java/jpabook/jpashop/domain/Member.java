@@ -1,4 +1,4 @@
-package jpabook.jpashop.domain.member;
+package jpabook.jpashop.domain;
 
 import jpabook.jpashop.domain.Locker;
 import jpabook.jpashop.domain.MemberProduct;

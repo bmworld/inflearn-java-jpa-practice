@@ -1,6 +1,6 @@
 package jpabook.jpashop;
 import jpabook.jpashop.domain.*;
-import jpabook.jpashop.domain.member.Member;
+import jpabook.jpashop.domain.Member;
 
 import javax.persistence.*;
 

@@ -1,8 +1,6 @@
 package jpabook.jpashop.domain;
 
 
-import jpabook.jpashop.domain.member.Member;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
