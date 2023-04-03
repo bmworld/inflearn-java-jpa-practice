@@ -1,11 +1,8 @@
 package jpabook.jpashop;
-import jpabook.jpashop.domain.Member;
-import jpabook.jpashop.domain.Order;
-import jpabook.jpashop.domain.OrderItem;
-import jpabook.jpashop.domain.Team;
+import jpabook.jpashop.domain.*;
+import jpabook.jpashop.domain.member.Member;
 
 import javax.persistence.*;
-import java.util.List;
 
 public class JpaMain {
   public static void main(String[] args) {
@@ -21,8 +18,25 @@ public class JpaMain {
 
     try {
 
-      Order order = new Order();
-      order.addOrderItem(new OrderItem());
+      Member member = new Member();
+      member.setName("m1");
+      em.persist(member);
+
+      Team team = new Team();
+      team.setName("TeamA");
+
+      team.getMembers().add(member);
+      em.persist(team);
+
+
+
+      Locker locker = new Locker();
+
+      member.setLocker(locker);
+      Member findedMember = locker.getMember();
+      System.out.println("findedMember = " + findedMember);
+      em.persist(locker);
+
 
 
       tx.commit();

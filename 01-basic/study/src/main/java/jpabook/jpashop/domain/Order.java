@@ -1,6 +1,8 @@
 package jpabook.jpashop.domain;
 
 
+import jpabook.jpashop.domain.member.Member;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
