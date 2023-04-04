@@ -3,26 +3,14 @@ package jpabook.jpashop.domain;
 import javax.persistence.*;
 
 @Entity
-public class Member extends BaseEntity{
+public class Team extends BaseEntity{
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "MEMBER_ID")
+  @Column(name = "TEAM_ID")
   private Long id;
   private String name;
 
-
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "TEAM_ID")
-  private Team team;
-
-  public Team getTeam() {
-    return team;
-  }
-
-  public void setTeam(Team team) {
-    this.team = team;
-  }
 
   public Long getId() {
     return id;
@@ -39,5 +27,4 @@ public class Member extends BaseEntity{
   public void setName(String name) {
     this.name = name;
   }
-
 }

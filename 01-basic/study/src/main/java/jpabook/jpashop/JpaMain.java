@@ -1,6 +1,7 @@
 package jpabook.jpashop;
-import jpabook.jpashop.domain.*;
 import jpabook.jpashop.domain.Member;
+import jpabook.jpashop.domain.Team;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 
@@ -14,29 +15,37 @@ public class JpaMain {
     tx.begin();
 
 
-
-
     try {
 
-      Movie movie = new Movie();
-      movie.setDirector("A director");
-      movie.setActor("A Actor");
-      movie.setName("타이타닉");
-      movie.setPrice(10000);
-      em.persist(movie);
+      Team team = new Team();
+      team.setName("teamA");
+
+      Member member = new Member();
+      member.setName("bm");
+      member.setTeam(team);
+
+      em.persist(team);
+      em.persist(member);
 
 
       em.flush();
       em.clear();
 
 
-      Movie foundMovie = em.find(Movie.class, movie.getId());
-      System.out.println("foundMovie = " + foundMovie);
+      Member m = em.find(Member.class, member.getId());
+      System.out.println("m.getTeam().class() = " + m.getTeam().getClass());
 
 
+      System.out.println("-----");
+      m.getTeam().getName();
+      System.out.println("-----");
+
+
+      Hibernate.initialize(m);
       tx.commit();
     } catch (Exception e) {
       tx.rollback();
+      e.printStackTrace();
     } finally {
       em.close();
     }
