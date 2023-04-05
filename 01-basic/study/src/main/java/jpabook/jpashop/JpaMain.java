@@ -1,4 +1,7 @@
 package jpabook.jpashop;
+import jpabook.jpashop.domain.Book;
+import jpabook.jpashop.domain.Delivery;
+import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.example.Child;
 import jpabook.jpashop.domain.example.Parent;
 
@@ -17,28 +20,20 @@ public class JpaMain {
 
     try {
 
-
-      Child child1 = new Child();
-
-      Child child2 = new Child();
-
-      Parent parent = new Parent();
-
-      parent.addChild(child1);
-      parent.addChild(child2);
-
-      em.persist(parent);
-      em.persist(child1);
-      em.persist(child2);
+      Book book = new Book();
+      book.setName("Book1");
+      book.setAuthor("bm");
 
 
-      em.flush();
-      em.clear();
+      Order order = new Order();
+      Delivery delivery = new Delivery();
+      order.setDelivery(delivery);
+
+      em.persist(book);
+      em.persist(order);
 
 
-      Parent foundParent = em.find(Parent.class, parent.getId());
 
-      em.remove(foundParent);
 
       tx.commit();
     } catch (Exception e) {
