@@ -34,6 +34,12 @@ public class Address {
         return zipcode;
     }
 
+
+    // =================================================================
+    // 참조로 인한, SideEffect를 막기 위해
+    // Immutable Object로 만든다.
+    // 1. Setter를 private method 만들기
+    // 2. Setter 자체를 없애기
     private void setCity(String city) {
         this.city = city;
     }
@@ -41,6 +47,13 @@ public class Address {
     private void setStreet(String street) {
         this.street = street;
     }
+
+    private void setZipcode(String zipcode) {
+        this.zipcode = zipcode;
+    }
+
+    // =================================================================
+
 
     @Override
     public boolean equals(Object o) {
@@ -53,9 +66,5 @@ public class Address {
     @Override
     public int hashCode() {
         return Objects.hash(getCity(), getStreet(), getZipcode());
-    }
-
-    private void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
     }
 }
