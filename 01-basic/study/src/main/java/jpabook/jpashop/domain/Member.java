@@ -1,6 +1,10 @@
 package jpabook.jpashop.domain;
 
+import jpabook.jpashop.domain.example.embeddedType.Address;
+
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Member extends BaseEntity{
@@ -12,20 +16,31 @@ public class Member extends BaseEntity{
   private String name;
 
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "TEAM_ID")
-  private Team team;
+  @Embedded
+  private Address address;
 
-  public Team getTeam() {
-    return team;
-  }
 
-  public void setTeam(Team team) {
-    this.team = team;
-  }
+  @OneToMany(mappedBy = "member")
+  private List<Order> orders = new ArrayList<>();
 
   public Long getId() {
     return id;
+  }
+
+  public Address getAddress() {
+    return address;
+  }
+
+  public void setAddress(Address address) {
+    this.address = address;
+  }
+
+  public List<Order> getOrders() {
+    return orders;
+  }
+
+  public void setOrders(List<Order> orders) {
+    this.orders = orders;
   }
 
   public void setId(Long id) {

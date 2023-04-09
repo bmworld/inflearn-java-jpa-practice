@@ -1,15 +1,20 @@
 package jpabook.jpashop.domain.example.embeddedType;
 
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.util.Objects;
 
 @Embeddable
 public class Address {
 
+    @Column(length = 10)
     private String city;
+    @Column(length = 20)
     private String street;
+    @Column(length = 5)
     private String zipcode;
+
 
     public Address() {
     }
@@ -19,6 +24,14 @@ public class Address {
         this.street = street;
         this.zipcode = zipcode;
     }
+
+
+    public String fullAddress() {
+        return getCity() + " " + getStreet() + " " + getZipcode();
+    }
+
+
+
 
     public String getCity() {
         return city;
