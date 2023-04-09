@@ -24,12 +24,12 @@ public class JpqlMain {
 
 
                 Team team = new Team();
-                team.setName("teamName" + i);
+                team.setName("name" + i);
                 em.persist(team);
 
 
                 Member member = new Member();
-                member.setName("memberName" + i);
+                member.setName("name" + i);
                 member.setAge(i);
 
                 member.changeTeam(team);
@@ -41,17 +41,13 @@ public class JpqlMain {
             em.clear();
 
 
+            String query = "select m from Member m left join Team t on m.name = t.name";
 
-
-
-            List<Member> results = em.createQuery("select m from Member m order by m.age desc", Member.class)
-                    .setFirstResult(1)
-                    .setMaxResults(10)
+            List<Member> results = em.createQuery(query, Member.class)
                     .getResultList();
 
-            System.out.println("result.size() = " + results.size());
             for (Member m1 : results) {
-                System.out.println("m1 = " + m1);
+                System.out.println("---- member = " + m1);
             }
 
 

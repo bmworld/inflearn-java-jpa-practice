@@ -81,4 +81,15 @@ public class Member extends BaseEntity{
 
   public void setTeam(Team team) {
   }
+
+  @Override
+  public String toString() {
+    return "Member{" +
+            "id=" + id +
+            ", name='" + name + '\'' +
+            ", address=" + address +
+            ", orders=" + orders +
+            ", age=" + age +
+            '}';
+  }
 }
