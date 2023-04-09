@@ -2,6 +2,7 @@ package jpabook.jpql;
 
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.DTO.MemberDTO;
+import jpabook.jpashop.domain.Team;
 
 import javax.persistence.*;
 import java.util.List;
@@ -18,27 +19,40 @@ public class JpqlMain {
 
         try {
 
+            for (int i = 0; i < 2; i++) {
 
-            Member member = new Member();
-            member.setName("memberName1");
-            member.setAge(21);
-            em.persist(member);
+
+
+                Team team = new Team();
+                team.setName("teamName" + i);
+                em.persist(team);
+
+
+                Member member = new Member();
+                member.setName("memberName" + i);
+                member.setAge(i);
+
+                member.changeTeam(team);
+
+                em.persist(member);
+            }
 
             em.flush();
             em.clear();
 
 
-            //
-            List<MemberDTO> results = em.createQuery("select new jpabook.jpashop.DTO.MemberDTO( m.name, m.age) from Member m", MemberDTO.class)
+
+
+
+            List<Member> results = em.createQuery("select m from Member m order by m.age desc", Member.class)
+                    .setFirstResult(1)
+                    .setMaxResults(10)
                     .getResultList();
 
-
-            MemberDTO dto = results.get(0);
-            System.out.println("dto.getUsername() = " + dto.getUsername());
-            System.out.println("dto.getUsername() = " + dto.getAge());
-
-
-
+            System.out.println("result.size() = " + results.size());
+            for (Member m1 : results) {
+                System.out.println("m1 = " + m1);
+            }
 
 
             tx.commit();

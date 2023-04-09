@@ -34,8 +34,9 @@ public class Member extends BaseEntity{
     return team;
   }
 
-  public void setTeam(Team team) {
+  public void changeTeam(Team team) {
     this.team = team;
+    team.getMembers().add(this);
   }
 
   public int getAge() {
@@ -78,4 +79,6 @@ public class Member extends BaseEntity{
     this.name = name;
   }
 
+  public void setTeam(Team team) {
+  }
 }
