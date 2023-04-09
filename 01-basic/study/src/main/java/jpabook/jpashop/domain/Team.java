@@ -1,6 +1,8 @@
 package jpabook.jpashop.domain;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Team extends BaseEntity{
@@ -11,6 +13,8 @@ public class Team extends BaseEntity{
   private Long id;
   private String name;
 
+  @OneToMany(mappedBy="team")
+  private List<Member> members = new ArrayList<>();
 
   public Long getId() {
     return id;

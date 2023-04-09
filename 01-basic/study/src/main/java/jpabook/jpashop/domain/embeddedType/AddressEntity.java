@@ -1,4 +1,4 @@
-package jpabook.jpashop.domain.example.embeddedType;
+package jpabook.jpashop.domain.embeddedType;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

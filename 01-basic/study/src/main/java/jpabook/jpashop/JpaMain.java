@@ -1,11 +1,13 @@
 package jpabook.jpashop;
 import jpabook.jpashop.domain.Book;
 import jpabook.jpashop.domain.Delivery;
+import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.example.Child;
 import jpabook.jpashop.domain.example.Parent;
 
 import javax.persistence.*;
+import java.util.List;
 
 public class JpaMain {
   public static void main(String[] args) {
@@ -20,6 +22,12 @@ public class JpaMain {
 
     try {
 
+      Member m1 = new Member();
+      m1.setName("bm123");
+
+      Member m2 = new Member();
+      m2.setName("bmworld");
+
       Book book = new Book();
       book.setName("Book1");
       book.setAuthor("bm");
@@ -29,10 +37,19 @@ public class JpaMain {
       Delivery delivery = new Delivery();
       order.setDelivery(delivery);
 
+      em.persist(m1);
+      em.persist(m2);
       em.persist(book);
       em.persist(order);
 
 
+      List<Member> results = em.createQuery("select m from Member m WHERE m.name like '%bm%'", Member.class).getResultList();
+
+      System.out.println("---- results = " + results);
+      for (Member member : results) {
+        System.out.println("----- member = " + member. getName());
+
+      }
 
 
       tx.commit();

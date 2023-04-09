@@ -1,6 +1,6 @@
 package jpabook.jpashop.domain;
 
-import jpabook.jpashop.domain.example.embeddedType.Address;
+import jpabook.jpashop.domain.embeddedType.Address;
 
 import javax.persistence.*;
 

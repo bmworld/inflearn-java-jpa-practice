@@ -1,6 +1,8 @@
 package jpabook.jpashop.domain;
 
 
+import jpabook.jpashop.domain.embeddedType.Address;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +19,7 @@ public class Order extends BaseEntity{
   @GeneratedValue
   @Column(name = "ORDER_ID")
   private Long id;
-
-
+  private int orderAmount;
   @ManyToOne(fetch = LAZY)
   @JoinColumn(name="MEMBER_ID")
   private Member member;
@@ -31,11 +32,18 @@ public class Order extends BaseEntity{
   private List<OrderItem> orderItems = new ArrayList<>();
 
 
+
+  @ManyToOne
+  @JoinColumn(name="PRODUCT_ID")
+  private Product product;
+
   private LocalDateTime orderDate;
 
   @Enumerated(EnumType.STRING)
   private OrderStatus status;
 
+  @Embedded
+  private Address address;
 
 
   public void addOrderItem(OrderItem orderItem) {
@@ -90,4 +98,31 @@ public class Order extends BaseEntity{
   public void setOrderItems(List<OrderItem> orderItems) {
     this.orderItems = orderItems;
   }
+
+
+  public int getOrderAmount() {
+    return orderAmount;
+  }
+
+  public void setOrderAmount(int orderAmount) {
+    this.orderAmount = orderAmount;
+  }
+
+  public Product getProduct() {
+    return product;
+  }
+
+  public void setProduct(Product product) {
+    this.product = product;
+  }
+
+  public Address getAddress() {
+    return address;
+  }
+
+  public void setAddress(Address address) {
+    this.address = address;
+  }
+
+
 }

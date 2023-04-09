@@ -1,16 +1,14 @@
 package jpabook.jpashop.domain;
 
-import jpabook.jpashop.domain.example.embeddedType.Address;
-import jpabook.jpashop.domain.example.embeddedType.AddressEntity;
-import jpabook.jpashop.domain.example.embeddedType.Employee;
-import jpabook.jpashop.domain.example.embeddedType.Period;
+import jpabook.jpashop.domain.embeddedType.Address;
+import jpabook.jpashop.domain.embeddedType.AddressEntity;
+import jpabook.jpashop.domain.embeddedType.Employee;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ValueMain {
     public static void main(String[] args) {

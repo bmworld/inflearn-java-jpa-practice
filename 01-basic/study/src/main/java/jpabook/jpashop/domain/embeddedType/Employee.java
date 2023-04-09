@@ -1,6 +1,4 @@
-package jpabook.jpashop.domain.example.embeddedType;
-
-import jpabook.jpashop.domain.BaseEntity;
+package jpabook.jpashop.domain.embeddedType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
