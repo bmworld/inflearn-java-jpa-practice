@@ -30,8 +30,21 @@ public class Member extends BaseEntity{
   private int age;
 
 
+  public Team getTeam() {
+    return team;
+  }
 
+  public void setTeam(Team team) {
+    this.team = team;
+  }
 
+  public int getAge() {
+    return age;
+  }
+
+  public void setAge(int age) {
+    this.age = age;
+  }
 
   public Long getId() {
     return id;
