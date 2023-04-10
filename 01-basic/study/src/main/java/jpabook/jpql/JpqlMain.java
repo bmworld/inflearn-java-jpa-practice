@@ -1,7 +1,9 @@
 package jpabook.jpql;
 
+import jpabook.jpashop.domain.Item;
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.DTO.MemberDTO;
+import jpabook.jpashop.domain.RoleType;
 import jpabook.jpashop.domain.Team;
 
 import javax.persistence.*;
@@ -31,6 +33,8 @@ public class JpqlMain {
                 Member member = new Member();
                 member.setName("name" + i);
                 member.setAge(i);
+                member.setRoleType(i == 0 ? RoleType.ADMIN : RoleType.USER);
+
 
                 member.changeTeam(team);
 
@@ -41,14 +45,21 @@ public class JpqlMain {
             em.clear();
 
 
-            String query = "select m from Member m left join Team t on m.name = t.name";
+            String query = "select m.name, 'HELLO', true from Member m " +
+                    "where m.roleType = :roleType";
 
-            List<Member> results = em.createQuery(query, Member.class)
+            List<Object[]> results = em.createQuery(query)
+                    .setParameter("roleType", RoleType.USER)
                     .getResultList();
 
-            for (Member m1 : results) {
-                System.out.println("---- member = " + m1);
+            for (Object[] objects : results) {
+                System.out.println("---- objects[n] = " + objects[0]);
+                System.out.println("---- objects[n] = " + objects[1]);
+                System.out.println("---- objects[n] = " + objects[2]);
             }
+
+
+
 
 
             tx.commit();

@@ -16,6 +16,9 @@ public class Member extends BaseEntity{
   private String name;
 
 
+  @Enumerated(EnumType.STRING)
+  private RoleType roleType;
+
   @Embedded
   private Address address;
 
@@ -49,6 +52,14 @@ public class Member extends BaseEntity{
 
   public Long getId() {
     return id;
+  }
+
+  public RoleType getRoleType() {
+    return roleType;
+  }
+
+  public void setRoleType(RoleType roleType) {
+    this.roleType = roleType;
   }
 
   public Address getAddress() {

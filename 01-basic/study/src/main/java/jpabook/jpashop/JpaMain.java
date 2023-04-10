@@ -1,8 +1,5 @@
 package jpabook.jpashop;
-import jpabook.jpashop.domain.Book;
-import jpabook.jpashop.domain.Delivery;
-import jpabook.jpashop.domain.Member;
-import jpabook.jpashop.domain.Order;
+import jpabook.jpashop.domain.*;
 import jpabook.jpashop.domain.example.Child;
 import jpabook.jpashop.domain.example.Parent;
 
@@ -49,6 +46,13 @@ public class JpaMain {
       for (Member member : results) {
         System.out.println("----- member = " + member. getName());
 
+      }
+
+
+      TypedQuery<Item> query = em.createQuery("SELECT i FROM Item i WHERE type(i) = Book", Item.class);
+      List<Item> resultList = query.getResultList();
+      for (Item item : resultList) {
+        System.out.println("---- item = " + item);
       }
 
 
