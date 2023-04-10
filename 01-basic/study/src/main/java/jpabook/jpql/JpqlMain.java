@@ -1,8 +1,6 @@
 package jpabook.jpql;
 
-import jpabook.jpashop.domain.Item;
 import jpabook.jpashop.domain.Member;
-import jpabook.jpashop.DTO.MemberDTO;
 import jpabook.jpashop.domain.RoleType;
 import jpabook.jpashop.domain.Team;
 
@@ -31,7 +29,7 @@ public class JpqlMain {
 
 
                 Member member = new Member();
-                member.setName("name" + i);
+                member.setName(i == 0 ? "관리자" : ("username" + i));
                 member.setAge(i);
                 member.setRoleType(i == 0 ? RoleType.ADMIN : RoleType.USER);
 
@@ -45,21 +43,31 @@ public class JpqlMain {
             em.clear();
 
 
-            String query = "select m.name, 'HELLO', true from Member m " +
-                    "where m.roleType = :roleType";
+            String CaseQuery = "select " +
+                    "CASE WHEN m.age <= 10 then '학생요금' " +
+                    "     WHEN m.age >= 60 then '경로요금' " +
+                    "     ELSE '일반요금' END " +
+                    "FROM Member m";
 
-            List<Object[]> results = em.createQuery(query)
-                    .setParameter("roleType", RoleType.USER)
+            List<String> result = em.createQuery(CaseQuery, String.class)
                     .getResultList();
 
-            for (Object[] objects : results) {
-                System.out.println("---- objects[n] = " + objects[0]);
-                System.out.println("---- objects[n] = " + objects[1]);
-                System.out.println("---- objects[n] = " + objects[2]);
+
+            for (String s : result) {
+                System.out.println("CASE1 Result = " + s);
             }
 
 
 
+            String CaseQuery2 = "select nullif(m.name, '관리자') FROM Member m";
+
+            List<String> result2 = em.createQuery(CaseQuery2, String.class)
+                    .getResultList();
+
+
+            for (String s : result2) {
+                System.out.println("CASE2 Result = " + s);
+            }
 
 
             tx.commit();
