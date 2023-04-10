@@ -43,31 +43,16 @@ public class JpqlMain {
             em.clear();
 
 
-            String CaseQuery = "select " +
-                    "CASE WHEN m.age <= 10 then '학생요금' " +
-                    "     WHEN m.age >= 60 then '경로요금' " +
-                    "     ELSE '일반요금' END " +
-                    "FROM Member m";
+            String query = "select size(t.members) from Team t ";
 
-            List<String> result = em.createQuery(CaseQuery, String.class)
+            List<Integer> result = em.createQuery(query, Integer.class)
                     .getResultList();
 
 
-            for (String s : result) {
-                System.out.println("CASE1 Result = " + s);
+            for (Integer s : result) {
+                System.out.println("Result = " + s);
             }
 
-
-
-            String CaseQuery2 = "select nullif(m.name, '관리자') FROM Member m";
-
-            List<String> result2 = em.createQuery(CaseQuery2, String.class)
-                    .getResultList();
-
-
-            for (String s : result2) {
-                System.out.println("CASE2 Result = " + s);
-            }
 
 
             tx.commit();
