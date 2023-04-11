@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Member extends BaseEntity{
+public class Member {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -19,18 +19,18 @@ public class Member extends BaseEntity{
   @Enumerated(EnumType.STRING)
   private RoleType roleType;
 
-  @Embedded
-  private Address address;
+//  @Embedded
+//  private Address address;
 
 
-  @OneToMany(mappedBy = "member")
-  private List<Order> orders = new ArrayList<>();
+//  @OneToMany(mappedBy = "member")
+//  private List<Order> orders = new ArrayList<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "TEAM_ID")
   private Team team;
 
-  private int age;
+//  private int age;
 
 
   public Team getTeam() {
@@ -42,13 +42,13 @@ public class Member extends BaseEntity{
     team.getMembers().add(this);
   }
 
-  public int getAge() {
-    return age;
-  }
-
-  public void setAge(int age) {
-    this.age = age;
-  }
+//  public int getAge() {
+//    return age;
+//  }
+//
+//  public void setAge(int age) {
+//    this.age = age;
+//  }
 
   public Long getId() {
     return id;
@@ -62,21 +62,21 @@ public class Member extends BaseEntity{
     this.roleType = roleType;
   }
 
-  public Address getAddress() {
-    return address;
-  }
+//  public Address getAddress() {
+//    return address;
+//  }
 
-  public void setAddress(Address address) {
-    this.address = address;
-  }
-
-  public List<Order> getOrders() {
-    return orders;
-  }
-
-  public void setOrders(List<Order> orders) {
-    this.orders = orders;
-  }
+//  public void setAddress(Address address) {
+//    this.address = address;
+//  }
+//
+//  public List<Order> getOrders() {
+//    return orders;
+//  }
+//
+//  public void setOrders(List<Order> orders) {
+//    this.orders = orders;
+//  }
 
   public void setId(Long id) {
     this.id = id;
@@ -98,9 +98,10 @@ public class Member extends BaseEntity{
     return "Member{" +
             "id=" + id +
             ", name='" + name + '\'' +
-            ", address=" + address +
-            ", orders=" + orders +
-            ", age=" + age +
+            ", roleType='" + roleType + '\'' +
+//            ", address=" + address +
+//            ", orders=" + orders +
+//            ", age=" + age +
             '}';
   }
 }

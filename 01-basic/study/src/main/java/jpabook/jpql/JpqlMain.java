@@ -19,22 +19,28 @@ public class JpqlMain {
 
         try {
 
-            for (int i = 0; i < 2; i++) {
 
 
+            Team team1 = new Team();
+            team1.setName("TEAM-0");
+            em.persist(team1);
 
-                Team team = new Team();
-                team.setName("name" + i);
-                em.persist(team);
+            Team team2 = new Team();
+            team2.setName("TEAM-1");
+            em.persist(team2);
+
+
+            for (int i = 0; i < 3; i++) {
+
+
 
 
                 Member member = new Member();
-                member.setName(i == 0 ? "관리자" : ("username" + i));
-                member.setAge(i);
+                member.setName(i == 0 ? "관리자" : ("USER-" + i));
                 member.setRoleType(i == 0 ? RoleType.ADMIN : RoleType.USER);
 
 
-                member.changeTeam(team);
+                member.changeTeam(i == 0 ? team1 : team2);
 
                 em.persist(member);
             }
@@ -43,16 +49,25 @@ public class JpqlMain {
             em.clear();
 
 
-            String query = "select size(t.members) from Team t ";
+            String query = "select t FROM Team t";
 
-            List<Integer> result = em.createQuery(query, Integer.class)
+            List<Team> results = em.createQuery(query, Team.class)
+                    .setFirstResult(0)
+                    .setMaxResults(3)
                     .getResultList();
 
 
-            for (Integer s : result) {
-                System.out.println("Result = " + s);
-            }
+            System.out.println("----------------------------------------");
 
+
+            for (Team s : results) {
+                System.out.println("---- Team = " + s.getName() + " | " + s.getMembers().size());
+                List<Member> members = s.getMembers();
+                for (Member member : members) {
+                    System.out.println("member.getName() = " + member.getName());
+                }
+
+            }
 
 
             tx.commit();
