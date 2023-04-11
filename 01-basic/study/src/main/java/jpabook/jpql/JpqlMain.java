@@ -30,6 +30,8 @@ public class JpqlMain {
             em.persist(team2);
 
 
+            Member targetMember = null;
+
             for (int i = 0; i < 3; i++) {
 
 
@@ -43,33 +45,28 @@ public class JpqlMain {
                 member.changeTeam(i == 0 ? team1 : team2);
 
                 em.persist(member);
+
+                if (i == 0) {
+                    targetMember = member;
+                }
+
             }
 
             em.flush();
             em.clear();
 
 
-            List<Member> resultList = em.createNamedQuery("Member.findByName", Member.class)
-                    .setParameter("name", "관리자")
-                    .getResultList();
+            String query = "update Member m set m.age = 20";
+
+            int resultCount = em.createQuery(query)
+                    .executeUpdate();
 
 
-//
-//            String query = "select m FROM Member m WHERE m.team = :team";
-//
-//            List<Member> resultList = em.createQuery(query, Member.class)
-//                    .setParameter("team", team2)
-//                    .getResultList();
+            em.clear(); // DB 벌크쿼리 수행된 후, 영속성 context와 동기화가 안된다.
+            // 따라서, 영속성 context 비운 후, 다시 시작.
 
-
-            System.out.println("----------------------------------------");
-
-            System.out.println("results = " + resultList);
-
-            for (Member s : resultList) {
-                System.out.println("member.getName() = " + s.getName());
-
-            }
+            Member foundMember = em.find(Member.class, targetMember.getId());
+            System.out.println("foundMember.getAge() = " + foundMember.getAge());
 
 
             tx.commit();

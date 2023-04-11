@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NamedQuery(
-        name="Member.findByName",
-        query="select m from Member m where m.name = :name"
-)
 public class Member {
 
   @Id
@@ -34,7 +30,7 @@ public class Member {
   @JoinColumn(name = "TEAM_ID")
   private Team team;
 
-//  private int age;
+  private int age;
 
 
   public Team getTeam() {
@@ -46,13 +42,13 @@ public class Member {
     team.getMembers().add(this);
   }
 
-//  public int getAge() {
-//    return age;
-//  }
-//
-//  public void setAge(int age) {
-//    this.age = age;
-//  }
+  public int getAge() {
+    return age;
+  }
+
+  public void setAge(int age) {
+    this.age = age;
+  }
 
   public Long getId() {
     return id;
