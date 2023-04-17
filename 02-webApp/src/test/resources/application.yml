@@ -10,7 +10,7 @@ spring:
 #
 #  jpa:
 #    hibernate:
-#      ddl-auto: create # ! create, update, none
+#      ddl-auto: createMemberForm.html # ! createMemberForm.html, update, none
 #    properties:
 #      hibernate:
 #        show_sql: true

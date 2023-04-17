@@ -7,12 +7,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # ! create, update, none
+      ddl-auto: update # ! createMemberForm.html, update, none
     properties:
       hibernate:
         show_sql: true
         format_sql: true
-
+  devtools:
+    restart:
+      additional-paths: /src/main/resources
+      poll-interval: 50 # ClassPath 변경에 대한 Polling 주기
+      quiet-period: 10 # 재시작 트리거 전, Class Path 변경 지연 시간
 
 
 logging:
