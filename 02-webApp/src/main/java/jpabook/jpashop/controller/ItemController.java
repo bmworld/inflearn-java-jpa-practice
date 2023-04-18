@@ -1,6 +1,7 @@
 package jpabook.jpashop.controller;
 
 
+import jpabook.jpashop.DTO.UpdateBookDto;
 import jpabook.jpashop.domain.item.Book;
 import jpabook.jpashop.domain.item.Item;
 import jpabook.jpashop.service.ItemService;
@@ -50,7 +51,7 @@ public class ItemController{
   public String updateItemForm(@PathVariable("itemId") Long itemId, Model model) {
     Book item = (Book) itemService.findOne(itemId);
     BookForm form = new BookForm();
-    form.setId(item.getId());
+    form.setId(item.getId()); // 얘는 DB에 PK값이 있는 준영속 상태다.
     form.setName(item.getName());
     form.setPrice(item.getPrice());
     form.setStockQuantity(item.getStockQuantity());
@@ -64,11 +65,20 @@ public class ItemController{
 
 
   @PostMapping("/items/{itemId}/edit")
-  public String updateItem(@ModelAttribute("form") BookForm form) {
-    System.out.println("form = " + form.getId());
-    Book book = new Book();
-    book.updateItem(form);
-    itemService.saveItem(book);
+  public String updateItem(@PathVariable Long itemId, @ModelAttribute("form") BookForm form) {
+    // ! 사용금지: merge를 사용하는 방법 (merge 사용 시, 특정필드 값이 없을 경우 null값이 적용될 수 있음)
+//    Book book = new Book();
+//    book.updateItem(form);
+//
+    UpdateBookDto dto = UpdateBookDto.builder()
+        .id(itemId)
+        .price(form.getPrice())
+        .name(form.getName())
+        .stockQuantity(form.getStockQuantity())
+        .author(form.getAuthor())
+        .isbn(form.getIsbn())
+        .build();
+    itemService.updateBook(itemId, dto );
 
 
     return "redirect:/items";
