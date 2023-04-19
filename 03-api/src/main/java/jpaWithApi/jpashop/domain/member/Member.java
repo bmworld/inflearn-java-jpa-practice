@@ -1,6 +1,7 @@
 package jpaWithApi.jpashop.domain.member;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jpaWithApi.jpashop.domain.Address;
 import jpaWithApi.jpashop.domain.order.Order;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class Member {
     @Embedded
     private Address address;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
 
