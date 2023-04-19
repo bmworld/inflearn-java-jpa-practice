@@ -28,6 +28,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
+
 
 //	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:3.9.1' // JPA query Parameter
 
