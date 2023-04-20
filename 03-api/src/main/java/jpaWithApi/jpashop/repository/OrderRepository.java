@@ -1,5 +1,6 @@
 package jpaWithApi.jpashop.repository;
 
+import jpaWithApi.jpashop.repository.order.simpleQuery.OrderSimpleQueryDto;
 import jpaWithApi.jpashop.domain.order.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -115,4 +116,5 @@ public class OrderRepository {
     ).getResultList();
 
   }
+
 }
