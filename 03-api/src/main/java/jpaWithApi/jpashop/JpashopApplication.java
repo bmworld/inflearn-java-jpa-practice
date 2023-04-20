@@ -20,10 +20,10 @@ public class JpashopApplication {
    * 작은 Project일 경우가 아니라면..
    * 극 비추 By 김영한 강사님.
    */
-  @Bean
-  Hibernate5Module hibernate5Module(){
-    Hibernate5Module hibernate5Module = new Hibernate5Module();
-    hibernate5Module.configure(Hibernate5Module.Feature.FORCE_LAZY_LOADING, true);
-    return hibernate5Module;
-  }
+//  @Bean
+//  Hibernate5Module hibernate5Module(){
+//    Hibernate5Module hibernate5Module = new Hibernate5Module();
+//    hibernate5Module.configure(Hibernate5Module.Feature.FORCE_LAZY_LOADING, true);
+//    return hibernate5Module;
+//  }
 }

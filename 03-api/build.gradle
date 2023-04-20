@@ -28,11 +28,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
 
+	// ! 실무에서 Entity를 Response로 반환할 일이 없을 가능성이 높아서 제거함
+//	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
 
+	// ! p6spy 사용 시, WAS FAILED 됨. 이유는 아직 모르겠음.
 //	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:3.9.1' // JPA query Parameter
-
+ 
   compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 
