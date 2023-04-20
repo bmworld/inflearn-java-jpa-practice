@@ -29,8 +29,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 
-	// ! 실무에서 Entity를 Response로 반환할 일이 없을 가능성이 높아서 제거
-//	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
+	// ! BAD CASE 예시(Entity를 반환하기)에 사용
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
 
 
 	// https://mvnrepository.com/artifact/com.github.gavlyukovskiy/p6spy-spring-boot-starter
