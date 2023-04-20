@@ -1,5 +1,6 @@
 package jpaWithApi.jpashop.api;
 
+import jpaWithApi.jpashop.api.memberDto.SimpleOrderResponseDto;
 import jpaWithApi.jpashop.domain.order.Order;
 import jpaWithApi.jpashop.repository.OrderRepository;
 import jpaWithApi.jpashop.repository.OrderSearch;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * X To One (ManyToOne, OneToOne) => 양방향 가능 시, 두 Entity 중 하나의 관계를 끊어줘야함 ( @JsonIgnore )
@@ -26,6 +29,15 @@ public class OrderSimpleApiController {
     public List<Order> ordersV1() {
         List<Order> all = orderRepository.findAllByString(new OrderSearch());
         return all;
-
     }
+
+    @GetMapping("/api/v2/simple-orders")
+    public List<SimpleOrderResponseDto> ordersV2() {
+        // 1 + N + N 문제발생 ( 1: order  / N: order.member / N: order.delivery
+        return orderRepository.findAllByString(new OrderSearch())
+            .stream()
+            .map(SimpleOrderResponseDto::new)
+            .collect(toList());
+    }
+
 }
