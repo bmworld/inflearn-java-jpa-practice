@@ -1,7 +1,7 @@
 package jpaWithApi.jpashop.api;
 
 import jpaWithApi.jpashop.repository.order.simpleQuery.OrderSimpleQueryDto;
-import jpaWithApi.jpashop.api.memberDto.SimpleOrderResponseDto;
+import jpaWithApi.jpashop.api.orderDto.SimpleOrderResponseDto;
 import jpaWithApi.jpashop.domain.order.Order;
 import jpaWithApi.jpashop.repository.OrderRepository;
 import jpaWithApi.jpashop.repository.OrderSearch;

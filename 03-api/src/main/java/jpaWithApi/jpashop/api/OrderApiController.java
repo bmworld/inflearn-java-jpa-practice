@@ -1,5 +1,6 @@
 package jpaWithApi.jpashop.api;
 
+import jpaWithApi.jpashop.api.orderDto.OrderDto;
 import jpaWithApi.jpashop.domain.order.Order;
 import jpaWithApi.jpashop.domain.order.OrderItem;
 import jpaWithApi.jpashop.repository.OrderRepository;
@@ -9,6 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,8 +30,18 @@ public class OrderApiController {
             List<OrderItem> orderItems = order.getOrderItems(); // Proxy 객체 강제 초기화
             orderItems.stream().forEach(o -> o.getItem().getName()); // Proxy 객체 강제 초기화
         }
-
         return result;
+
+    }
+
+    @GetMapping("/api/v2/orders")
+    public List<OrderDto> ordersV2() {
+        List<Order> orders = orderRepository.findAllByString(new OrderSearch());
+        List<OrderDto> collect = orders.stream()
+                .map(OrderDto::new)
+                .collect(toList());
+
+        return collect;
 
     }
 

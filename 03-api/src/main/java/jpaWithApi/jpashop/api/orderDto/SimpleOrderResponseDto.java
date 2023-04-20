@@ -1,4 +1,4 @@
-package jpaWithApi.jpashop.api.memberDto;
+package jpaWithApi.jpashop.api.orderDto;
 
 import jpaWithApi.jpashop.domain.Address;
 import jpaWithApi.jpashop.domain.order.Order;
