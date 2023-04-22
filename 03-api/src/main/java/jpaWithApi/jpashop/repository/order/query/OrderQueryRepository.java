@@ -6,12 +6,17 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class OrderQueryRepository {
     private final EntityManager em;
 
+    /**
+     * 해당 DTO 조회의 단점은, For Loop 사용.
+     */
     public List<OrderQueryDto> findOrderQueryDtos() {
         List<OrderQueryDto> result = findOrders();
         result.forEach(o ->{
@@ -32,11 +37,53 @@ public class OrderQueryRepository {
                 .getResultList();
     }
 
+
+
+
+    public List<OrderQueryDto> findAllByDto_optimization() {
+
+        List<OrderQueryDto> result = findOrders();
+
+        Map<Long, List<OrderItemQueryDto>> orderItemMap = findOrderItemMap(toOrderIds(result));
+
+        result.forEach(o -> o.setOrderItems(orderItemMap.get(o.getOrderId())));
+
+        return result;
+    }
+
+    private Map<Long, List<OrderItemQueryDto>> findOrderItemMap(List<Long> orderIds) {
+        List<OrderItemQueryDto> orderItems = findOrderItems(orderIds);
+
+        Map<Long, List<OrderItemQueryDto>> orderItemMap = orderItems.stream()
+                .collect(Collectors.groupingBy(OrderItemQueryDto::getOrderId));
+        return orderItemMap;
+    }
+
+    private static List<Long> toOrderIds(List<OrderQueryDto> result) {
+        List<Long> orderIds = result.stream()
+                .map(OrderQueryDto::getOrderId)
+                .collect(Collectors.toList());
+        return orderIds;
+    }
+
+
     private List<OrderQueryDto> findOrders() {
         return em.createQuery(
                         "select new jpaWithApi.jpashop.repository.order.query.OrderQueryDto(o.id, m.name, o.orderDate, o.status, d.address) from Order o" +
                                 " join o.member m" +
                                 " join o.delivery d", OrderQueryDto.class)
+                .getResultList();
+    }
+
+
+    private List<OrderItemQueryDto> findOrderItems(List<Long> orderIds) {
+        return em.createQuery(
+                        "select new jpaWithApi.jpashop.repository.order.query.OrderItemQueryDto(oi.order.id, i.name, oi.orderPrice, oi.count)" +
+                                " from OrderItem oi" +
+                                " join oi.item i" +
+                                " where oi.order.id in :orderIds"
+                        , OrderItemQueryDto.class)
+                .setParameter("orderIds", orderIds)
                 .getResultList();
     }
 }
