@@ -1,59 +1,122 @@
-plugins {
-	id 'java'
-	id 'org.springframework.boot' version '2.7.10-SNAPSHOT'
-	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+////////////////////////////////////////////////////////////////
+// QueryDSL - Dependency 추가
+buildscript {
+  dependencies {
+    classpath("gradle.plugin.com.ewerk.gradle.plugins:querydsl-plugin:1.0.10")
+  }
 }
+////////////////////////////////////////////////////////////////
+
+
+// START
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '2.7.10-SNAPSHOT'
+  id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+
+////////////////////////////////////////////////////////////////
+// QueryDSL - 적용
+apply plugin: "com.ewerk.gradle.plugins.querydsl"
+////////////////////////////////////////////////////////////////
 
 group = 'japWithApi'
 version = '0.0.2-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
 }
 
 repositories {
-	mavenCentral()
-	maven { url 'https://repo.spring.io/milestone' }
-	maven { url 'https://repo.spring.io/snapshot' }
+  mavenCentral()
+  maven { url 'https://repo.spring.io/milestone' }
+  maven { url 'https://repo.spring.io/snapshot' }
 }
 
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-devtools'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-devtools'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+  // QueryDSL
+  implementation 'com.querydsl:querydsl-jpa'
+  implementation 'com.querydsl:querydsl-apt'
 
 
-	// ! BAD CASE 예시(Entity를 반환하기)에 사용
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5' // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
+  // ! BAD CASE 예시(Entity를 반환하기)에 사용
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5'
+  // XToOne 연관관계 중 LAZY Loading에 걸린 Entity Reponse응답 시, Entity객체에 초기화된 ByteBuddyInter 이슈 해결용
 
 
-	// https://mvnrepository.com/artifact/com.github.gavlyukovskiy/p6spy-spring-boot-starter
-	implementation group: 'com.github.gavlyukovskiy', name: 'p6spy-spring-boot-starter', version: '1.7.1'
+  // https://mvnrepository.com/artifact/com.github.gavlyukovskiy/p6spy-spring-boot-starter
+  implementation group: 'com.github.gavlyukovskiy', name: 'p6spy-spring-boot-starter', version: '1.7.1'
 
 
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
+  // LOMBOK
+  compileOnly 'org.projectlombok:lombok:1.18.20'
+  annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+  testCompileOnly 'org.projectlombok:lombok:1.18.20'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+  // DB
+  runtimeOnly 'com.h2database:h2'
 
 
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	//JUnit4 추가
-	testImplementation("org.junit.vintage:junit-vintage-engine") {
-		exclude group: "org.hamcrest", module: "hamcrest-core"
-	}
+  //JUnit4 추가
+  testImplementation("org.junit.vintage:junit-vintage-engine") {
+    exclude group: "org.hamcrest", module: "hamcrest-core"
+  }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 jar {
-	enabled = false // plan jar 파일 생성방지
+  enabled = false // plan jar 파일 생성방지
 }
+
+
+////////////////////////////////////////////////////////////////
+// QueryDSL 세팅
+def querydslDir = 'src/main/generated' // QClass 생성 위치
+
+querydsl {
+  library = "com.querydsl:querydsl-apt"
+  jpa = true
+  querydslSourcesDir = querydslDir // // QClass 생성 위치
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ["src/main/java", querydslDir]
+    }
+  }
+}
+
+// querydsl 컴파일 시 사용할 옵션 설정
+compileQuerydsl {
+  options.annotationProcessorPath = configurations.querydsl
+}
+
+// querydsl이 compileClassPath를 상속하도록 설정
+configurations {
+  // * 아래를 지정하지 않으면, compile 로 걸린 JPA 의존성에 접근하지 못한다.
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+  querydsl.extendsFrom compileClasspath
+}
+
+////////////////////////////////////////////////////////////////
