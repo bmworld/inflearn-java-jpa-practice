@@ -1,7 +1,7 @@
 package jpaWithApi.jpashop.service;
 
 import jpaWithApi.jpashop.domain.member.Member;
-import jpaWithApi.jpashop.repository.MemberRepository;
+import jpaWithApi.jpashop.repository.MemberRepository_old;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
@@ -23,7 +23,7 @@ public class MemberServiceTest {
   MemberService memberService;
 
   @Autowired
-  MemberRepository memberRepository;
+  MemberRepository_old memberRepository;
 
 
   @DisplayName("회원 가입")

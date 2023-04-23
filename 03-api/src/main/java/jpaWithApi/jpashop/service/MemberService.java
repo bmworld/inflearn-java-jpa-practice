@@ -2,6 +2,7 @@ package jpaWithApi.jpashop.service;
 
 import jpaWithApi.jpashop.domain.member.Member;
 import jpaWithApi.jpashop.repository.MemberRepository;
+import jpaWithApi.jpashop.repository.MemberRepository_old;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.List;
 public class MemberService {
 
 
+    private final MemberRepository_old memberRepository_old;
     private final MemberRepository memberRepository;
 
 
@@ -27,7 +29,9 @@ public class MemberService {
 
     private void validateDuplicateMember(Member member) {
         // EXCEPTION
+//        List<Member> foundMembers = memberRepository_old.findByName(member.getName()); // Non-`spring-data-jpa` ver.
         List<Member> foundMembers = memberRepository.findByName(member.getName());
+        memberRepository.count();
         if (!foundMembers.isEmpty()) {
             throw new IllegalStateException("이미 존재하는 회원입니다.");
         }
@@ -39,12 +43,14 @@ public class MemberService {
     }
 
     public Member findOne(Long memberId) {
-        return memberRepository.findOne(memberId);
+//        return memberRepository_old.findOne(memberId); // Non-`spring-data-jpa` ver.
+        return memberRepository.findById(memberId).get();
     }
 
     @Transactional
     public void update(Long id, String name) {
-        Member member = memberRepository.findOne(id);
+//        Member member = memberRepository_old.findOne(id); // Non-`spring-data-jpa` ver.
+        Member member = memberRepository.findById(id).get();
         member.setName(name);
     }
 }

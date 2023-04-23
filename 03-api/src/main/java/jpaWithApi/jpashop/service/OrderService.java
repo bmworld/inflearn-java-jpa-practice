@@ -5,10 +5,7 @@ import jpaWithApi.jpashop.domain.item.Item;
 import jpaWithApi.jpashop.domain.member.Member;
 import jpaWithApi.jpashop.domain.order.Order;
 import jpaWithApi.jpashop.domain.order.OrderItem;
-import jpaWithApi.jpashop.repository.ItemRepository;
-import jpaWithApi.jpashop.repository.MemberRepository;
-import jpaWithApi.jpashop.repository.OrderRepository;
-import jpaWithApi.jpashop.repository.OrderSearch;
+import jpaWithApi.jpashop.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +18,7 @@ import java.util.List;
 public class OrderService {
 
   private final OrderRepository orderRepository;
+  private final MemberRepository_old memberRepository_old;
   private final MemberRepository memberRepository;
   private final ItemRepository itemRepository;
 
@@ -31,7 +29,8 @@ public class OrderService {
   public Long order(Long memberId, Long itemId, int count) {
 
     // Entity 조회
-    Member member = memberRepository.findOne(memberId);
+//    Member member = memberRepository.findOne(memberId); // Non-`spring-data-jpa` ver.
+    Member member = memberRepository.findById(memberId).get();
     Item item = itemRepository.findOne(itemId);
 
     // 배송정보 생성
