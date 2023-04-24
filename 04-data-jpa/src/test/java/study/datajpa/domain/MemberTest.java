@@ -11,8 +11,6 @@ import javax.persistence.PersistenceContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @Transactional
 @Rollback(value = false)
