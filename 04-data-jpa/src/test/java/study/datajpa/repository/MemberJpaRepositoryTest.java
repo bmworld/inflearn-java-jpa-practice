@@ -73,4 +73,24 @@ class MemberJpaRepositoryTest {
 
   }
 
+
+  @DisplayName("findByNameAndAgeGreaterThan")
+  @Test
+  public void findByNameAndAgeGreaterThan() throws Exception{
+    // Given
+    Member m1 = new Member("USERNAME", 10);
+    Member m2 = new Member("USERNAME", 13);
+    Member m3 = new Member("USERNAME", 30);
+
+    memberJpaRepository.save(m1);
+    memberJpaRepository.save(m2);
+    memberJpaRepository.save(m3);
+
+
+    List<Member> result = memberJpaRepository.findByNameAndAgeGreaterThan("USERNAME", 15);
+
+    assertThat(result.get(0).getName()).isEqualTo("USERNAME");
+    assertThat(result.get(0).getAge()).isEqualTo(30);
+    assertThat(result.size()).isEqualTo(1);
+  }
 }

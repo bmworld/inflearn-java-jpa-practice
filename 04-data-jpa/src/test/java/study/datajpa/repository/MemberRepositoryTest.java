@@ -76,4 +76,43 @@ class MemberRepositoryTest {
 
   }
 
+
+  @DisplayName("findByNameAndAgeGreaterThanOfSpringDataJPA")
+  @Test
+  public void findByNameAndAgeGreaterThanOfSpringDataJPA() throws Exception{
+    // Given
+    createMembers();
+
+
+    List<Member> result = memberRepository.findByNameAndAgeGreaterThan("USERNAME", 15);
+
+    assertThat(result.get(0).getName()).isEqualTo("USERNAME");
+    assertThat(result.get(0).getAge()).isEqualTo(30);
+    assertThat(result.size()).isEqualTo(1);
+  }
+
+  @DisplayName("find...By에서 ...에 식별하기 위한 내용(설명)이 들어가도 된다. ")
+  @Test
+  void findHelloooooowBy() {
+    createMembers();
+    List<Member> all = memberRepository.findHelloooooowBy();
+    assertThat(all.size()).isEqualTo(3);
+
+  }
+
+  @DisplayName("findTop`N`...By: N개만큼의 limit Query가 나간다.")
+  @Test
+  void findTop3HelloBy() {
+    List<Member> all = memberRepository.findTop3HelloBy(); // => ... from member member0_ limit 3;
+  }
+
+  private void createMembers() {
+    Member m1 = new Member("USERNAME", 10);
+    Member m2 = new Member("USERNAME", 13);
+    Member m3 = new Member("USERNAME", 30);
+
+    memberRepository.save(m1);
+    memberRepository.save(m2);
+    memberRepository.save(m3);
+  }
 }
