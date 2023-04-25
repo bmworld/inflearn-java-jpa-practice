@@ -1,9 +1,14 @@
 package study.datajpa.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import study.datajpa.domain.Member;
+import study.datajpa.dto.MemberDto;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
@@ -11,4 +16,31 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
   List<Member> findHelloooooowBy();
   List<Member> findTop3HelloBy();
+
+  @Query("select m from Member m where m.name = :name and m.age = :age")
+  List<Member> findUser(@Param("name") String name, @Param("age") int age);
+
+
+  @Query("select m.name from Member m")
+  List<String> findUserNameList();
+
+
+  @Query("select new study.datajpa.dto.MemberDto(m.id, m.name, t.name) from Member m join m.team t")
+  List<MemberDto> findMemberDto();
+
+
+  @Query("select m from Member m where m.name in :names")
+  List<Member> findByNames(@Param("names") Collection<String> names);
+
+
+
+  // 반환타입 >  유연하게 지정할 수 있다.
+
+  /**
+   * List 타입 반환 시, null값이 아닌, "Empty Collection" 반환함
+   * => 항상 Collection 값 반환을 JPA가 보장해준다.
+   */
+  List<Member> findMemberListByName(String name); // 컬렉션
+  Member findMemberByName(String name); // 단건
+  Optional<Member> findOptionalMemberByName(String name); // 단건 Optional
 }

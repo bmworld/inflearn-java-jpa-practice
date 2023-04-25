@@ -10,7 +10,7 @@ import static javax.persistence.FetchType.*;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)// JPA 표준 스펙 중, Entity는 기본 생성자 필요함. => Why? JPA Proxy 사용 시, private 접근자일 경우 불가하므로, protected로 설정한다.
-@ToString(of = {"id", "username", "age"}) // Entity 연관관계 필드는 무한 루프 방지를 위해, 제외하시라.
+@ToString(of = {"id", "name", "age"}) // Entity 연관관계 필드는 무한 루프 방지를 위해, 제외하시라.
 public class Member {
     @Id @GeneratedValue
     @Column(name = "member_id")

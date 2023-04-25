@@ -93,4 +93,5 @@ class MemberJpaRepositoryTest {
     assertThat(result.get(0).getAge()).isEqualTo(30);
     assertThat(result.size()).isEqualTo(1);
   }
+
 }

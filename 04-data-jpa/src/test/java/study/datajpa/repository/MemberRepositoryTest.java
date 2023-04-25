@@ -7,9 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
+import study.datajpa.domain.Team;
+import study.datajpa.dto.MemberDto;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,6 +21,10 @@ class MemberRepositoryTest {
 
   @Autowired
   MemberRepository memberRepository;
+
+  @Autowired
+  TeamRepository teamRepository;
+
 
   @DisplayName("testMemberUsingByDataJpaRepository")
   @Test
@@ -106,6 +111,111 @@ class MemberRepositoryTest {
     List<Member> all = memberRepository.findTop3HelloBy(); // => ... from member member0_ limit 3;
   }
 
+
+  @DisplayName("findUser 메서드를 테스트 해보자`")
+  @Test
+  public void testQueryMethod() throws Exception{
+    // Given
+    String name = "USERNAME";
+    int age = 10;
+    Member m1 = createMembersByNameAndAge(name, age);
+
+    // When
+    List<Member> foundUsers = memberRepository.findUser(name, age);
+
+    // Then
+    assertThat(foundUsers.get(0)).isEqualTo(m1);
+
+  }
+
+  @Test
+  void findUserNameList() {
+    createMembers();
+    List<String> userNameList = memberRepository.findUserNameList();
+    for (String s : userNameList) {
+      System.out.println("------ s = " + s);
+    }
+  }
+
+
+  @Test
+  void findMemberDto() {
+    Team t1 = new Team("teamA");
+
+    teamRepository.save(t1);
+
+    Member m1 = new Member("memberA");
+    m1.setTeam(t1);
+    memberRepository.save(m1);
+
+    List<MemberDto> memberDtos = memberRepository.findMemberDto();
+    for (MemberDto dto : memberDtos) {
+      System.out.println("dto = " + dto);
+    }
+
+  }
+
+
+  @Test
+  void findByNames() {
+    List<String> userNameList = Arrays.asList("name1", "name2", "name3");
+    createMembers(userNameList);
+
+    List<Member> foundMembers = memberRepository.findByNames(userNameList);
+    for (Member member : foundMembers) {
+      int index = foundMembers.indexOf(member);
+//      System.out.println("----- member.getName() = " + member.getName());
+//      System.out.println("----- userNameList.get(index) = " + userNameList.get(index));
+      assertThat(member.getName()).isEqualTo(userNameList.get(index));
+    }
+  }
+
+  @Test
+  void test_returnType() {
+    List<String> userNameList = Arrays.asList("name1", "name2", "name3");
+    String name1 = userNameList.get(0);
+    createMembers(userNameList);
+
+    List<Member> members = memberRepository.findMemberListByName(name1);
+    Member m1 = members.get(0);
+
+    Member m2 = memberRepository.findMemberByName(name1);
+
+    Optional<Member> optionalMemberByName = memberRepository.findOptionalMemberByName(name1);
+    if (optionalMemberByName.isPresent()) {
+      Member m3 = optionalMemberByName.get();
+      assertThat(m1).isEqualTo(m2);
+      assertThat(m2).isEqualTo(m3);
+    } else {
+      throw new IllegalStateException("Check you given condition");
+    }
+  }
+
+  @Test
+  void test_returnType_ListReturnTypeIsAlwaysNotNull() {
+    List<String> userNameList = Arrays.asList("name1", "name2", "name3");
+    String notExistedNameInMembers = "adflkjasdlkjf";
+    createMembers(userNameList);
+
+    List<Member> members = memberRepository.findMemberListByName(notExistedNameInMembers);
+
+    assertThat(members.size()).isEqualTo(0);
+    assertThat(members).isNotNull();
+  }
+
+
+
+
+
+  private void createMembers(List<String> names) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, 10 * order);
+      memberRepository.save(m);
+    }
+  }
+
+
   private void createMembers() {
     Member m1 = new Member("USERNAME", 10);
     Member m2 = new Member("USERNAME", 13);
@@ -114,5 +224,15 @@ class MemberRepositoryTest {
     memberRepository.save(m1);
     memberRepository.save(m2);
     memberRepository.save(m3);
+  }
+
+
+  private Member createMembersByNameAndAge(String name, int age) {
+    Member m1 = new Member(name, age);
+    Member m2 = new Member("USERNAME2", 133);
+
+    memberRepository.save(m1);
+    memberRepository.save(m2);
+    return m1;
   }
 }
