@@ -4,6 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
@@ -204,6 +208,83 @@ class MemberRepositoryTest {
   }
 
 
+  /**
+   * API 개발 꿀팁 : Entity -> DTO 변환 쉽게 하기
+   * <p> - Page에서 제공하는 Map 사용 </p>
+   */
+  @Test
+  void pagingBySpringDataJPA() {
+
+    // given
+    int age = 10;
+    int offset = 0;
+    int limit = 4;
+    int memberTotalCount = 18;
+    int totalPageCount = (int) Math.ceil( (double) memberTotalCount / limit);
+
+    createMembers(getMemberNameList(memberTotalCount), age);
+
+
+    PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Direction.DESC, "name"));
+    // when
+    Page<Member> page = memberRepository.findMemberByAge(age, pageRequest);
+
+
+    // API 개발 꿀팁 => Entity
+    Page<MemberDto> toMap = page.map(member -> new MemberDto(member.getId(), member.getName(), null));
+
+
+    // then
+    List<Member> members = page.getContent();
+    long totalElements = page.getTotalElements();
+
+    assertThat(members.size()).isEqualTo(limit);
+    assertThat(totalElements).isEqualTo(memberTotalCount);
+    // 현재 페이지 번호
+    assertThat(page.getNumber()).isEqualTo(0);
+    // 전체 페이지 수
+    assertThat(page.getTotalPages()).isEqualTo(totalPageCount);
+    // 첫 페이지 여부
+    assertThat(page.isFirst()).isTrue();
+    // 다음 페이지 존재여부
+    assertThat(page.hasNext()).isTrue();
+  }
+
+
+  /** SLICE에 없는 기능
+   * <p> 1. page.getTotalElements() </p>
+   * <p> 2. page.getTotalPages() </p>
+   * <p> SLICE 반환 시, limit + 1 을 해줌으로서, "더보기" 기능 등에 사용할 수 있게 해놨다. </p>
+   */
+  @Test
+  void pagingBySpringDataJPA_usingBySlice() {
+
+    // given
+    int age = 10;
+    int offset = 0;
+    int limit = 4; //
+    int memberTotalCount = 18;
+    int totalPageCount = (int) Math.ceil( (double) memberTotalCount / limit);
+
+    createMembers(getMemberNameList(memberTotalCount), age);
+
+
+    PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Direction.DESC, "name"));
+    // when
+    Slice<Member> page = memberRepository.findMemberUsingSliceByAge(age, pageRequest);
+
+    // then
+    List<Member> members = page.getContent();
+
+
+    System.out.println("page.getSize() = " + page.getSize());
+
+    assertThat(members.size()).isEqualTo(limit);
+    // 현재 페이지 번호
+    assertThat(page.getNumber()).isEqualTo(0);
+  }
+
+
 
 
 
@@ -227,12 +308,31 @@ class MemberRepositoryTest {
   }
 
 
+  private void createMembers(List<String> names, int age) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, age );
+      memberRepository.save(m);
+    }
+  }
+
+
+
   private Member createMembersByNameAndAge(String name, int age) {
     Member m1 = new Member(name, age);
-    Member m2 = new Member("USERNAME2", 133);
+    Member m2 = new Member("member", 133);
 
     memberRepository.save(m1);
     memberRepository.save(m2);
     return m1;
   }
+
+  private static List<String> getMemberNameList(int memberTotalCount) {
+    List<String> memberNameList = new ArrayList<>();
+    for (int i = 0; i < memberTotalCount; i++) {
+      memberNameList.add("member" + i);
+    }
+    return memberNameList;
+  }
+
 }

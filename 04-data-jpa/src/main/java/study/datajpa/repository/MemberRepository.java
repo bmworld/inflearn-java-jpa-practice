@@ -1,5 +1,8 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +46,18 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   List<Member> findMemberListByName(String name); // 컬렉션
   Member findMemberByName(String name); // 단건
   Optional<Member> findOptionalMemberByName(String name); // 단건 Optional
+
+
+  /**
+   * Paging 유의사항 > `Count Query`를 분리하시라.
+   * <p>페이징 시, 데이터 가져오는 것은 큰 데이터가 들지 않는다.</p>
+   * <p>다만, totalCount 계산은 데이터가 많아질 수록 데이터소비가 크다.</p>
+   */
+  @Query(value = "select m from Member m left join m.team t",
+      countQuery = "select count(m) from Member m"
+  )
+  Page<Member> findMemberByAge(int age, Pageable pageable);
+
+  Slice<Member> findMemberUsingSliceByAge(int age, Pageable pageable);
+
 }

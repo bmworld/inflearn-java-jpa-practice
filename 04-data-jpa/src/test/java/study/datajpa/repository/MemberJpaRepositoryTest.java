@@ -8,6 +8,8 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,4 +96,41 @@ class MemberJpaRepositoryTest {
     assertThat(result.size()).isEqualTo(1);
   }
 
+  @Test
+  void paging() {
+
+    // given
+    int age = 10;
+    int offset = 0;
+    int limit = 2;
+    int memberTotalCount = 8;
+    createMembers(getMemberNameList(memberTotalCount), age);
+
+
+
+    // when
+    List<Member> members = memberJpaRepository.findByPage(age, offset, limit);
+    long totalCount = memberJpaRepository.totalCountByAge(age);
+
+    // then
+    assertThat(members.size()).isEqualTo(limit);
+    assertThat(totalCount).isEqualTo(memberTotalCount);
+  }
+
+
+  private void createMembers(List<String> names, int age) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, age );
+      memberJpaRepository.save(m);
+    }
+  }
+
+  private static List<String> getMemberNameList(int memberTotalCount) {
+    List<String> memberNameList = new ArrayList<>();
+    for (int i = 0; i < memberTotalCount; i++) {
+      memberNameList.add("member" + i);
+    }
+    return memberNameList;
+  }
 }
