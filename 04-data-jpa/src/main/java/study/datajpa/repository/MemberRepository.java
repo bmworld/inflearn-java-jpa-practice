@@ -3,12 +3,13 @@ package study.datajpa.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.domain.Member;
 import study.datajpa.dto.MemberDto;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -59,5 +60,52 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   Page<Member> findMemberByAge(int age, Pageable pageable);
 
   Slice<Member> findMemberUsingSliceByAge(int age, Pageable pageable);
+
+
+  /**
+   * Annotation @Modifying <br>
+   *  - executeUpdate() 실행 <br>
+   *  - 미사용 시, getResultList() 또는 getSingleResult() 실행 <br>
+   *  - @Modifying(clearAutomatically = true): 쿼리 실행 후,  em.clear() 실행
+   */
+  @Modifying
+  @Query(value = "UPDATE Member m SET m.age = m.age +1 WHERE m.age >= :age")
+  int bulkAgePlus(@Param("age") int age);
+
+
+  /**
+   * [중요] Fetch Join
+   */
+  @Query(value = "SELECT m FROM Member m LEFT JOIN FETCH m.team")
+  List<Member> findAllByFetchJoin();
+
+
+  /**
+   * `@EntityGraph` 사용 후, attributePaths에 연동되는 Entity Field 입력 시, `FETCH JOIN` 적용됨
+   */
+  @EntityGraph(attributePaths = {"team"})
+  @Query(value = "SELECT m FROM Member m LEFT JOIN FETCH m.team")
+  List<Member> findAllByFetchJoinViaEntityGraph();
+
+
+  /**
+   * [성능튜닝] queryHints -> ReadOnly 기능 적용 가능 <br>
+   * 단, 이건 남발하지말 것 <br>
+   * 언제 쓰나 ? 캐시서버를 사용하기에는 애매하게 많은 트래픽이고, 특히 성능이 안나오는 케이스
+   */
+  @QueryHints(value = @QueryHint(name ="org.hibernate.readOnly", value = "true"))
+  @Query(value = "SELECT m FROM Member m")
+  Member findByNameViaQueryHintsAsReadOnly(String name);
+
+
+  /**
+   * [성능튜닝] -> JPA가 제공하는 DB SQL Lock 기능을 사용할 수 있다. <br>
+   * [EXAMPLE] select ... from member for update <------ `for update` 이게 Lock 기능이다.
+   *
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query(value = "SELECT m FROM Member m")
+  Member findMemberViaJPALock(String name);
+
 
 }

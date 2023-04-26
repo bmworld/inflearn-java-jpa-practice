@@ -14,6 +14,8 @@ import study.datajpa.domain.Member;
 import study.datajpa.domain.Team;
 import study.datajpa.dto.MemberDto;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +31,8 @@ class MemberRepositoryTest {
   @Autowired
   TeamRepository teamRepository;
 
+  @PersistenceContext
+  EntityManager em;
 
   @DisplayName("testMemberUsingByDataJpaRepository")
   @Test
@@ -286,36 +290,148 @@ class MemberRepositoryTest {
 
 
 
+  @Test
+  void bulkAgePlus() {
+    // given
+    int targetAge = 30;
+    createMembersByAges(Arrays.asList(10, 20, targetAge, 40));
+
+    // when
+    int resultCount = memberRepository.bulkAgePlus(20); // 조건 충족 시, 나이 + 1
+
+    // then
+    assertThat(resultCount).isEqualTo(3);
+
+    
+    
+    // ##################################################################
+    // [꿀팁]  JPA 영속성 context와 "벌크쿼리" 동작방식 이해하기
+    // ##################################################################
 
 
-  private void createMembers(List<String> names) {
-    for (String name : names) {
-      int order = names.indexOf(name) + 1;
-      Member m = new Member(name, 10 * order);
-      memberRepository.save(m);
+    // given
+    boolean clearPersistenceContext = true; // <- Test with condition change
+    if (clearPersistenceContext) {
+      // 벌크 쿼리 후, "영속성 Context" 비우고 다시 시작하시라.
+      // `@Modifying(clearAutomatically = true)` Annotation으로 대체 가능
+      em.clear();
+      targetAge = targetAge + 1;
     }
+
+    // when
+    Member member3 = memberRepository.findMemberByName("member3");
+
+    // then
+    assertThat(member3.getAge()).isEqualTo(targetAge);
+    System.out.println("-----영속성 context => target" + targetAge + "  / member3.getAge() = " + member3.getAge());
+
+
+  }
+  
+  
+  @DisplayName("fetchJoinAndLazyLoading")
+  @Test
+  public void findMemberByLazyLoading() throws Exception{
+    // Given
+    Team teamA = new Team("teamA");
+    Team teamB = new Team("teamB");
+
+    teamRepository.save(teamA);
+    teamRepository.save(teamB);
+
+    Member mA = new Member("memberA", 10, teamA);
+    Member mB = new Member("memberB", 20, teamB);
+
+    memberRepository.save(mA);
+    memberRepository.save(mB);
+
+    em.flush();
+    em.clear();
+
+
+
+
+
+    // Then => SQL Query 확인하시라.
+    // ################################# NON-FETCH-JOIN #################################
+
+    System.out.println("################################# NON-FETCH-JOIN #################################");
+    List<Member> members = memberRepository.findAll();
+    for (Member member : members) {
+      System.out.println("member.getName() = " + member.getName());
+      System.out.println("member.getTeam() = " + member.getTeam().getClass());
+      System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+    }
+
+
+
+
+
+    // ################################# FETCH-JOIN #################################
+    System.out.println("################################# FETCH-JOIN #################################");
+    List<Member> membersFromFetchJoin = memberRepository.findAllByFetchJoin();
+    for (Member member : membersFromFetchJoin) {
+      System.out.println("member.getName() = " + member.getName());
+      System.out.println("member.getTeam() = " + member.getTeam().getClass());
+      System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+    }
+
+
+
+    // ################################# FETCH-JOIN VIA @EntityGraph(attributePaths = {"entityField"}) #################################
+    System.out.println("################################# FETCH-JOIN VIA @EntityGraph(attributePaths = {\"entityField\"})#################################");
+    List<Member> membersFromFetchJoinViaEntityGraph = memberRepository.findAllByFetchJoinViaEntityGraph();
+    for (Member member : membersFromFetchJoinViaEntityGraph) {
+      System.out.println("member.getName() = " + member.getName());
+      System.out.println("member.getTeam() = " + member.getTeam().getClass());
+      System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+    }
+  
   }
 
 
-  private void createMembers() {
-    Member m1 = new Member("USERNAME", 10);
-    Member m2 = new Member("USERNAME", 13);
-    Member m3 = new Member("USERNAME", 30);
-
+  @DisplayName("[성능튜닝] queryHints -> ReadOnly 기능 적용 가능 -> 단, 이건 남발하지말고, 캐시서버를 사용하지 않고, 특별히 성능이 안나오는 몇몇 케이스에만 적용하시라")
+  @Test
+  public void queryHints() throws Exception{
+    // Given
+    String name = "member1";
+    Member m1 = new Member(name);
     memberRepository.save(m1);
-    memberRepository.save(m2);
-    memberRepository.save(m3);
+    em.flush();
+    em.clear();
+    // When
+    Member foundMember = memberRepository.findByNameViaQueryHintsAsReadOnly(name);
+    foundMember.setName("newName");
+
+    em.flush();
+    // Then
+
   }
 
 
-  private void createMembers(List<String> names, int age) {
-    for (String name : names) {
-      int order = names.indexOf(name) + 1;
-      Member m = new Member(name, age );
-      memberRepository.save(m);
-    }
+
+  @DisplayName("[성능튜닝] JPA LOCK")
+  @Test
+  public void queryViaLock() throws Exception{
+    // Given
+    String name = "member1";
+    Member m1 = new Member(name);
+    memberRepository.save(m1);
+    em.flush();
+    em.clear();
+    // When
+    Member foundMember = memberRepository.findMemberViaJPALock(name);
+    foundMember.setName("newName");
+
+    em.flush();
+    // Then
+
   }
 
+
+
+
+// #################################################################
 
 
   private Member createMembersByNameAndAge(String name, int age) {
@@ -330,9 +446,48 @@ class MemberRepositoryTest {
   private static List<String> getMemberNameList(int memberTotalCount) {
     List<String> memberNameList = new ArrayList<>();
     for (int i = 0; i < memberTotalCount; i++) {
-      memberNameList.add("member" + i);
+      int order = i + 1;
+      memberNameList.add("member" + order);
     }
     return memberNameList;
   }
 
+
+  private void createMembers(List<String> names, int age) {
+    for (String name : names) {
+      Member m = new Member(name, age );
+      memberRepository.save(m);
+    }
+  }
+
+  private void createMembers() {
+    Member m1 = new Member("USERNAME", 10);
+    Member m2 = new Member("USERNAME", 13);
+    Member m3 = new Member("USERNAME", 30);
+
+    memberRepository.save(m2);
+    memberRepository.save(m3);
+    memberRepository.save(m1);
+  }
+
+
+  private void createMembersByAges(List<Integer> ages) {
+    int ageCount = ages.size();
+
+    List<String> names = getMemberNameList(ageCount);
+
+    for (int age : ages) {
+      int index = ages.indexOf(age);
+      Member m = new Member(names.get(index), age);
+      memberRepository.save(m);
+    }
+  }
+
+  private void createMembers(List<String> names) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, 10 * order);
+      memberRepository.save(m);
+    }
+  }
 }

@@ -42,7 +42,7 @@ class MemberJpaRepositoryTest {
 
   @DisplayName("basicCRUD")
   @Test
-  public void basicCRUD() throws Exception{
+  public void basicCRUD() throws Exception {
     // Given
     Member member1 = new Member("member1");
     Member member2 = new Member("member2");
@@ -78,7 +78,7 @@ class MemberJpaRepositoryTest {
 
   @DisplayName("findByNameAndAgeGreaterThan")
   @Test
-  public void findByNameAndAgeGreaterThan() throws Exception{
+  public void findByNameAndAgeGreaterThan() throws Exception {
     // Given
     Member m1 = new Member("USERNAME", 10);
     Member m2 = new Member("USERNAME", 13);
@@ -107,7 +107,6 @@ class MemberJpaRepositoryTest {
     createMembers(getMemberNameList(memberTotalCount), age);
 
 
-
     // when
     List<Member> members = memberJpaRepository.findByPage(age, offset, limit);
     long totalCount = memberJpaRepository.totalCountByAge(age);
@@ -117,11 +116,36 @@ class MemberJpaRepositoryTest {
     assertThat(totalCount).isEqualTo(memberTotalCount);
   }
 
+  @Test
+  void bulkAgePlus() {
+    createMembers(Arrays.asList(10, 20, 21, 24, 30, 40));
+
+    // when
+    int resultCount = memberJpaRepository.bulkAgePlus(30);
+
+    // then
+    assertThat(resultCount).isEqualTo(2);
+  }
+
+
+  // #################################################################
+
+  private void createMembers(List<Integer> ages) {
+    int ageCount = ages.size();
+
+    List<String> names = getMemberNameList(ageCount);
+
+    for (int age : ages) {
+      int index = ages.indexOf(age);
+      Member m = new Member(names.get(index), age);
+      memberJpaRepository.save(m);
+    }
+  }
 
   private void createMembers(List<String> names, int age) {
     for (String name : names) {
       int order = names.indexOf(name) + 1;
-      Member m = new Member(name, age );
+      Member m = new Member(name, age);
       memberJpaRepository.save(m);
     }
   }
