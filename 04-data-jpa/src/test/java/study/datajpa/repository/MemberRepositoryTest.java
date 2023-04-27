@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
@@ -27,6 +28,7 @@ class MemberRepositoryTest {
 
   @Autowired
   MemberRepository memberRepository;
+
 
   @Autowired
   TeamRepository teamRepository;
@@ -439,6 +441,34 @@ class MemberRepositoryTest {
 
 
 
+  @DisplayName("[실무에서 사용 X] specificationBasic: JPA Criteria를 사용한 Query ")
+  @Test
+  public void specificationBasic() throws Exception{
+    // Given
+    Team team = new Team("teamA");
+    em.persist(team);
+
+    String targetName = "name1";
+    List<String> userNameList = Arrays.asList(targetName, "name2", "name3");
+    createMembers(userNameList, team);
+
+    em.flush();
+    em.clear();
+
+
+    // When
+    Specification<Member> spec = MemberSpecification.username(targetName).and(MemberSpecification.teamName("teamA"));
+    List<Member> result = memberRepository.findAll(spec);
+
+    // Then
+    Member foundMember = result.get(0);
+    assertThat(result.size()).isEqualTo(1);
+    assertThat(foundMember.getName()).isEqualTo(targetName);
+    System.out.println("----- targetName = " + targetName);
+
+  }
+
+
 
 // #################################################################
 // #################################################################
@@ -501,6 +531,14 @@ class MemberRepositoryTest {
     for (String name : names) {
       int order = names.indexOf(name) + 1;
       Member m = new Member(name, 10 * order);
+      memberRepository.save(m);
+    }
+  }
+
+  private void createMembers(List<String> names, Team team) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, 10 * order, team);
       memberRepository.save(m);
     }
   }
