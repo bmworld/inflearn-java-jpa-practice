@@ -1,0 +1,2 @@
+GET http://localhost:8080/members?page=0&sort=id
+Content-Type: application/json
