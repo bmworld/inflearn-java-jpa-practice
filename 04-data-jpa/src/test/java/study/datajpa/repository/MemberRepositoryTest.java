@@ -4,10 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -468,6 +465,45 @@ class MemberRepositoryTest {
 
   }
 
+
+  @DisplayName("queryByExample")
+  @Test
+  public void queryByExample() throws Exception{
+    // Given
+    String targetTeamName = "teamA";
+    Team team = new Team(targetTeamName);
+    em.persist(team);
+
+    String targetName = "name1";
+    List<String> userNameList = Arrays.asList(targetName, "name2", "name3");
+    createMembers(userNameList, team);
+
+    em.flush();
+    em.clear();
+
+    // When
+    Member member = new Member(targetName, 10, team);
+
+    // 무시할 조건 추가 가능
+    ExampleMatcher matcher = ExampleMatcher.matching().withIgnorePaths("age");
+
+    // Query Start.
+    Example<Member> example = Example.of(member, matcher);
+
+    List<Member> result = memberRepository.findAll(example);
+
+
+    // Then
+    System.out.println("----- result = " + result);
+    Member foundMember = result.get(0);
+    assertThat(result.size()).isEqualTo(1);
+    assertThat(foundMember.getName()).isEqualTo(targetName);
+    assertThat(foundMember.getTeam().getName()).isEqualTo(targetTeamName);
+    System.out.println("------ foundMember.getName() = " + foundMember.getName());
+    System.out.println("------ foundMember.getTeam().getName() = " + foundMember.getTeam().getName());
+
+
+  }
 
 
 // #################################################################
