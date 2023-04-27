@@ -49,8 +49,9 @@ public class MemberController {
    */
   @PostConstruct
   public void init() {
+    // Controller 테스트용
     for (int i = 0; i < 50; i++) {
-      memberRepository.save(new Member(("member" + i + 1)));
+//      memberRepository.save(new Member(("member" + i + 1)));
     }
   }
 
