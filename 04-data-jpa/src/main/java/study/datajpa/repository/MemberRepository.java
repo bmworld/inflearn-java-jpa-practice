@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.domain.Member;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.MemberProjection;
 import study.datajpa.dto.UserNameOnly;
-import study.datajpa.dto.UserNameOnlyDto;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -114,13 +114,38 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
 
   /**
    * <h3>Projection</h3>
-   * - Projection 대상이 root Entity 일 경우, 유용 <br/>
-   * - 단점: Projection 대상이 root Entity보다 깊어지면, JPQL최적화가 안됨 <br>
-   * - 정리 <br>
-   * &nbsp;&nbsp; 1. 실무의 복잡한 Query를 해결하기에 한계가 있음 (복잡해지면 QueryDSL을 사용하자) <br>
-   * &nbsp;&nbsp; 2. 실무에서 단순한 Entity 조회 시 사용
+   * <pre>
+   * - Projection 대상이 root Entity 일 경우, 유용
+   * - 단점: Projection 대상이 root Entity보다 깊어지면, JPQL최적화가 안됨
+   * - 정리
+   *   1. 실무의 복잡한 Query를 해결하기에 한계가 있음 (복잡해지면 QueryDSL을 사용하자)
+   *   2. 실무에서 단순한 Entity 조회 시 사용</pre>
    */
   List<UserNameOnly> findProjectionsInterfaceVersionByName(@Param("name")String name);
 
   <T>List<T> findProjectionsDtoVersionByName(@Param("name")String name, Class<T> type);
+
+
+  /**<h3> Native Query </h3>
+   * <pre>
+   * - Spring Data JPA 기반
+   * - Paging 지원
+   * - 반환타입: Object[], Tuple, DTO (Spring Data Interface Projections 지원)
+   * - 제약
+   *    1. Sort Parameter를 통한 정렬의 비정상 동작할 수 있음
+   *    2. App Loading 시점에 문법오류 확인불과 (JPQL과 동일)
+   *    3. 동적 Query 불가
+   *
+   *
+   * - Native SQL을 사용하여 DTO 조회 시, Jdbc Template 또는 MyBatis 권장
+   * </pre>
+   */
+  @Query(value = "select * from member where name = ?", nativeQuery = true)
+  Member findByNativeQuery(String name);
+
+  @Query(value = "select m.member_id as id, m.name, t.name as teamName" +
+      " from member m left join team t",
+      countQuery = "select count(*) from member",
+      nativeQuery = true)
+  Page<MemberProjection> findByNativeQueryWithProjection(Pageable pageable);
 }

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
 import study.datajpa.domain.Team;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.MemberProjection;
 import study.datajpa.dto.UserNameOnly;
 import study.datajpa.dto.UserNameOnlyDto;
 
@@ -564,6 +565,56 @@ class MemberRepositoryTest {
 
   }
 
+  @DisplayName("Native SQL Query")
+  @Test
+  void findByNativeQuery() {
+    // Given
+    String targetTeamName = "teamA";
+    Team team = new Team(targetTeamName);
+    em.persist(team);
+
+    String targetName = "name1";
+    List<String> userNameList = Arrays.asList(targetName, "name2", "name3");
+    createMembers(userNameList, team);
+
+    em.flush();
+    em.clear();
+
+    // When
+
+    Member member = memberRepository.findByNativeQuery(targetName);
+    // Then
+    System.out.println("------ member = " + member);
+
+  }
+
+  @DisplayName("Native SQL Query with Projection")
+  @Test
+  void findByNativeQueryWithProjection() {
+
+    // Given
+    String targetTeamName = "teamA";
+    Team team = new Team(targetTeamName);
+    em.persist(team);
+
+    String targetName = "name1";
+    List<String> userNameList = Arrays.asList(targetName, "name2", "name3");
+    createMembers(userNameList, team);
+
+    em.flush();
+    em.clear();
+
+    // When
+
+    Page<MemberProjection> result = memberRepository.findByNativeQueryWithProjection(PageRequest.of(0, 10));
+    List<MemberProjection> content = result.getContent();
+    for (MemberProjection memberProjection : content) {
+      System.out.println("memberProjection.getName() = " + memberProjection.getName());
+      System.out.println("memberProjection.getTeamName() = " + memberProjection.getTeamName());
+    }
+    // Then
+
+  }
 
 // #################################################################
 // #################################################################
@@ -637,4 +688,6 @@ class MemberRepositoryTest {
       memberRepository.save(m);
     }
   }
+
+
 }
