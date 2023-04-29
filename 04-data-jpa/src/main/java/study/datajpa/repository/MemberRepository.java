@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.domain.Member;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.UserNameOnly;
+import study.datajpa.dto.UserNameOnlyDto;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -108,4 +110,17 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
   Member findMemberViaJPALock(String name);
 
 
+
+
+  /**
+   * <h3>Projection</h3>
+   * - Projection 대상이 root Entity 일 경우, 유용 <br/>
+   * - 단점: Projection 대상이 root Entity보다 깊어지면, JPQL최적화가 안됨 <br>
+   * - 정리 <br>
+   * &nbsp;&nbsp; 1. 실무의 복잡한 Query를 해결하기에 한계가 있음 (복잡해지면 QueryDSL을 사용하자) <br>
+   * &nbsp;&nbsp; 2. 실무에서 단순한 Entity 조회 시 사용
+   */
+  List<UserNameOnly> findProjectionsInterfaceVersionByName(@Param("name")String name);
+
+  <T>List<T> findProjectionsDtoVersionByName(@Param("name")String name, Class<T> type);
 }

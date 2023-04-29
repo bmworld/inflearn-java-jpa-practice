@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.domain.Member;
 import study.datajpa.domain.Team;
 import study.datajpa.dto.MemberDto;
+import study.datajpa.dto.UserNameOnly;
+import study.datajpa.dto.UserNameOnlyDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -485,7 +487,7 @@ class MemberRepositoryTest {
     Member member = new Member(targetName, 10, team);
 
     // 무시할 조건 추가 가능
-    ExampleMatcher matcher = ExampleMatcher.matching().withIgnorePaths("age");
+    ExampleMatcher matcher = ExampleMatcher .matching().withIgnorePaths("age");
 
     // Query Start.
     Example<Member> example = Example.of(member, matcher);
@@ -502,6 +504,63 @@ class MemberRepositoryTest {
     System.out.println("------ foundMember.getName() = " + foundMember.getName());
     System.out.println("------ foundMember.getTeam().getName() = " + foundMember.getTeam().getName());
 
+
+  }
+
+
+
+  /**
+   * Project 구현방법 1. `Interface` 기반
+   * Project 구현방법 2. `Class` 기반
+   * <br>
+   * - 주의: Projection 대상이 Root Entity면, JPQL SELECT 절 최적화 가능
+   * <br>
+   * - 단점: Projection 대상이 ROOT가 아니고, LEFT OUTER JOIN 처리 시, 최적화 어려움
+   * <br>
+   *   -> 모든 Field를 SELECT해서, Entity로 조회한 다음 계산함.
+   */
+  @DisplayName("queryByProjections")
+  @Test
+  public void queryByProjections() throws Exception{
+    // Given
+    String targetTeamName = "teamA";
+    Team team = new Team(targetTeamName);
+    em.persist(team);
+
+    String targetName = "name1";
+    List<String> userNameList = Arrays.asList(targetName, "name2", "name3");
+    createMembers(userNameList, team);
+
+    em.flush();
+    em.clear();
+
+    // When
+
+    List<UserNameOnly> result = memberRepository.findProjectionsInterfaceVersionByName(targetName);
+    // Then
+    for (UserNameOnly userNameOnly : result) {
+      System.out.println("------ userNameOnly = " + userNameOnly);
+
+    }
+
+
+    // 동적 Projection
+    List<UserNameOnlyDto> resultDtos = memberRepository.findProjectionsDtoVersionByName("name1", UserNameOnlyDto.class);
+    // Then
+    for (UserNameOnlyDto dto : resultDtos) {
+      System.out.println("------ dto.getName() = " + dto.getName());
+    }
+
+
+    // Nested Name
+    List<NestedClosedProjections> resultWithNestedProjectinosDtos = memberRepository.findProjectionsDtoVersionByName("name1", NestedClosedProjections.class);
+    // Then
+    for (NestedClosedProjections nestedClosedProjections : resultWithNestedProjectinosDtos) {
+      String name = nestedClosedProjections.getName();
+      System.out.println("------ name = " + name);
+      String teamName = nestedClosedProjections.getTeam().getName();
+      System.out.println("------ teamName = " + teamName);
+    }
 
   }
 
