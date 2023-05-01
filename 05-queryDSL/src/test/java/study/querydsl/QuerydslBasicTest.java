@@ -1,6 +1,7 @@
 package study.querydsl;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +20,9 @@ import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.domain.QMember.*;
+import static study.querydsl.domain.QTeam.team;
 
 @SpringBootTest
 @Rollback(false)
@@ -54,6 +56,9 @@ public class QuerydslBasicTest {
 
     createMembers(getMemberNameList(2, "A"), teamA);
     createMembers(getMemberNameList(2, "B"), teamB);
+
+
+    System.out.println("----------- beforeInit: DONE");
   }
 
 
@@ -255,6 +260,295 @@ public class QuerydslBasicTest {
 
   }
 
+
+  /**
+   * <h2>정렬기능</h2>
+   * <pre>
+   *   Example. 회원 정렬 순서
+   *   1. 회원 나이 내림차순 (desc)
+   *   2. 회원 나이 올림차순 (asc)
+   *   - 단, 2 조건에서 회원 이름이 없을 경우, 마지막에 출력
+   *
+   * </pre>
+   */
+  @DisplayName("sort")
+  @Test
+  public void sort() throws Exception {
+    // Given
+    int targetAge = 100;
+    String m1Name = "m1";
+    String m2Name = "m2";
+    createMember(m1Name, targetAge);
+    createMember(m2Name, targetAge);
+    createMember(null, targetAge);
+
+
+    // When
+    List<Member> result = queryFactory
+        .select(member)
+        .from(member)
+        .where(member.age.eq(targetAge))
+        .orderBy(member.age.desc(), member.name.asc().nullsLast()) // Null 데이터는 맨 마지막으로
+        .fetch();
+
+
+    // Then
+    Member member1 = result.get(0);
+    Member member2 = result.get(1);
+    Member memberNull = result.get(2);
+    assertThat(member1.getName()).isEqualTo(m1Name);
+    assertThat(member2.getName()).isEqualTo(m2Name);
+    assertThat(memberNull.getName()).isNull();
+
+  }
+
+
+  @DisplayName("paging1")
+  @Test
+  public void paging1() throws Exception {
+    // Given / When
+    int limit = 3;
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .orderBy(member.name.desc())
+        .offset(1)
+        .limit(limit)
+        .fetch();
+
+    // Then
+    assertThat(result.size()).isEqualTo(limit);
+  }
+
+
+  @DisplayName("paging2")
+  @Test
+  public void paging2() throws Exception {
+    // Given / When
+    int limit = 3;
+    int offset = 1;
+    QueryResults<Member> result = queryFactory
+        .selectFrom(member)
+        .orderBy(member.name.desc())
+        .offset(1)
+        .limit(limit)
+        .fetchResults();
+
+    // Then
+    assertThat(result.getTotal()).isEqualTo(4);
+    assertThat(result.getLimit()).isEqualTo(limit);
+    assertThat(result.getOffset()).isEqualTo(offset);
+    assertThat(result.getResults().size()).isEqualTo(limit);
+  }
+
+
+  /**
+   * <h2> - 집합 구하기</h2>
+   * <pre>
+   *
+   * </pre>
+   *
+   * <br>
+   *
+   * <h2> - Tuple</h2>
+   * <pre>
+   *   다중 컬럼 결과를 받기 위한 Type
+   *
+   * </pre>
+   */
+  @DisplayName("aggregation: 집합 구하기")
+  @Test
+  public void aggregation() throws Exception {
+    // Given
+    List<Tuple> result = queryFactory
+        .select(
+            member.count(),
+            member.age.sum(),
+            member.age.avg(),
+            member.age.max(),
+            member.age.min()
+        )
+        .from(member)
+        .fetch();
+
+    // When
+    Tuple tuple = result.get(0);
+    // Then
+    System.out.println("tuple.get(member) = " + tuple.get(member));
+    assertThat(tuple.get(member.count())).isEqualTo(4);
+    assertThat(tuple.get(member.age.sum())).isEqualTo(60);
+    assertThat(tuple.get(member.age.min())).isEqualTo(10);
+    assertThat(tuple.get(member.age.max())).isEqualTo(20);
+
+  }
+
+  @DisplayName("group: 팀 이름과 각 팀의 평균 연령구하기 + having")
+  @Test
+  public void group() throws Exception{
+    // Given
+    List<Tuple> result = queryFactory
+        .select(team.name, member.age.avg())
+        .from(member)
+        .join(member.team, team)
+        .groupBy(team.name)
+        .having(team.name.contains("A").or(team.name.contains("B"))) // groupBy 의 해당하는 column 내부에 존재하는 값에 대해서만 having절 적용할 수 있음
+        .fetch();
+
+    // When
+    Tuple teamA = result.get(0);
+    Tuple teamB = result.get(1);
+
+
+    // Then
+    assertThat(teamA.get(team.name)).isEqualTo("teamA");
+    assertThat(teamA.get(member.age.avg())).isEqualTo(15);
+
+    assertThat(teamB.get(team.name)).isEqualTo("teamB");
+    assertThat(teamB.get(member.age.avg())).isEqualTo(15);
+
+
+  }
+
+
+
+  @DisplayName("join")
+  @Test
+  public void join() throws Exception{
+    // Given / When
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .join(member.team, team)
+        .where(team.name.eq("teamA"))
+        .fetch();
+
+
+    // Then
+    assertThat(result)
+        .extracting("name")
+        .containsExactly("member-A-1", "member-A-2");
+
+  }
+
+
+  /**
+   * <h2>THETA JOIN : 연관관계까 없는 Field를 사용한 Join</h2>
+   * <pre>
+   *   - From 절에 여러 Entity를 선택하여 THETA JOIN
+   *   - 연관관계가 없는 Table을 Join하여, 조건에 맞는 신규 Table Rows 반환.
+   *   - 외부 조인 불가능
+   *     => BUT, 최근 queryDsl 버전이 올라가면서 JOIN ON을 사용하여 가능해짐
+   * </pre>
+   *
+   * <h3>주의사항</h3>
+   * <pre>
+   *   1. Join Condition: 데이터 타입이 불일치 할 경우, 올바르지 않은 결과를 Return할 수 있음
+   *   2. Table Size: THETA JOIN은 비싼 연산이다.
+   *   3. Table Structure: 조인 중, Data type 불일치 시, Data 증발할 수 있다.
+   *   4. Duplicate Data: 만약, Join된 두 Table에 대하여, 조건이 일치할 경우, 중복된 rows가 생성된다.
+   *   5. Performance: 데이터 조회에 들어가는 비싼 비용만큼, 최적화에 신경써야한다.
+   * </pre>
+   */
+  @DisplayName("THETA JOIN: 연관관계가 없는 Table을 Join 가능")
+  @Test
+  public void theta_join() throws Exception{
+    // Given
+    Team t = new Team("t-C");
+    em.persist(t);
+    em.persist(new Member("m-A", 11, t));
+    em.persist(new Member("m-B", 22, t));
+    em.persist(new Member("m-C", 33, t));
+
+    // When
+    List<Member> result = queryFactory
+        .select(member)
+        .from(member, team)
+        .where(member.name.contains("C"), team.name.contains("C"))
+        .fetch();
+
+
+    // Then
+    assertThat(result)
+        .extracting("name")
+        .containsExactly("m-C");
+
+  }
+
+
+  /**
+   * <h2>JOIN ON절 </h2>
+   * <pre>
+   *   - 용도
+   *   1. JOIN 대상 filtering
+   *   2. 연관관계 없는 Entity OUTER JOIN
+   *
+   *
+   *   참고)
+   *   - INNER JOIN => WHERE 절 사용
+   *      (INNER JOI => ON 절과  WHERE 절의 결과는 동일함)
+   *   - LEFT/RIGHT OUTER JOIN => ON 절 사용
+   *      (WHERE 절로 해결할 수 없음)
+   *
+   *
+   *   결론)
+   *    ON 절은정말 OUTER JOIN 필요 시에만 사용하시라.
+   * </pre>
+   * <pre>
+   *   Example: 회원과 팀을 조인하되, 팀 이름이 teamA인 Team만 JOIN & 회원은 모두 조회
+   *   - JPQL: select m, t from Member m left join m.team t on t.name = 'teamA'
+   * </pre>
+   */
+  @DisplayName("join_ON")
+  @Test
+  public void join_with_on_filtering() throws Exception{
+    // Given
+    List<Tuple> result = queryFactory
+        .select(member, team)
+        .from(member)
+        .leftJoin(member.team, team).on(team.name.eq("teamA"))
+        .fetch();
+
+    // When
+    
+    // Then
+    for (Tuple tuple : result) {
+      // leftJoin 시, team값 조건이 맞지 않을 경우, null 값 출력됨.
+      System.out.println("----- tuple = " + tuple);
+
+    }
+  
+  }
+
+
+  @DisplayName("연관관계 없는 Entity의 OUTER JOIN")
+  @Test
+  public void join_with_on_no_relationEntity() throws Exception{
+    // Given
+    Team t = new Team("t-C");
+    em.persist(t);
+    em.persist(new Member("m-A", 11, t));
+    em.persist(new Member("m-B", 22, t));
+    em.persist(new Member("m-C", 33, t));
+
+    // When
+    List<Tuple> result = queryFactory
+        .select(member, team)
+        .from(member)
+        // 중요) member, team 사이에 연관 관계가 없는 조건이므로, FK 매칭하지 않음 => leftJoin 시, leftJoin(member.team, team) 사용 X
+        .join(team).on(member.name.contains("C"), team.name.contains("C"))
+        .fetch();
+
+    for (Tuple tuple : result) {
+      System.out.println("----- tuple = " + tuple);
+
+    }
+
+
+  }
+
+
+
+
+
+
 // #################################################################
 // #################################################################
 // #################################################################
@@ -262,6 +556,23 @@ public class QuerydslBasicTest {
 // #################################################################
 // #################################################################
 
+  private void createMember(String name, int age) {
+    Member m = new Member(name, age);
+    memberRepository.save(m);
+  }
+
+  private void createMember(String name, int age, Team team) {
+    Member m = new Member(name, age, team);
+    memberRepository.save(m);
+  }
+
+  private void createMembers(List<String> names) {
+    for (String name : names) {
+      int order = names.indexOf(name) + 1;
+      Member m = new Member(name, 10 * order);
+      memberRepository.save(m);
+    }
+  }
 
   private static List<String> getMemberNameList(int memberTotalCount, String suffix) {
     List<String> memberNameList = new ArrayList<>();
@@ -270,15 +581,6 @@ public class QuerydslBasicTest {
       memberNameList.add("member" + "-" + suffix + "-" + order);
     }
     return memberNameList;
-  }
-
-
-  private void createMembers(List<String> names) {
-    for (String name : names) {
-      int order = names.indexOf(name) + 1;
-      Member m = new Member(name, 10 * order);
-      memberRepository.save(m);
-    }
   }
 
   private void createMembers(List<String> names, Team team) {
