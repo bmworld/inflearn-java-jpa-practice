@@ -1,4 +1,4 @@
-package study.querydsl;
+package study.querydsl.jpql;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @Rollback(false)
-class QuerydslApplicationTests {
+public class QuerydslApplicationTests {
 
   @PersistenceContext
   EntityManager em;

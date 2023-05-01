@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 @SpringBootTest
+@Rollback(false)
 @Transactional
 public class MemberTest {
 
