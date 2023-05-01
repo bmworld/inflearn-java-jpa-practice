@@ -2,6 +2,10 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +20,9 @@ import study.querydsl.domain.Team;
 import study.querydsl.repository.MemberRepository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +34,11 @@ import static study.querydsl.domain.QTeam.team;
 @Rollback(false)
 @Transactional
 public class QuerydslBasicTest {
+
+
+  @PersistenceUnit
+  EntityManagerFactory emf;
+
 
   @PersistenceContext
   EntityManager em;
@@ -545,9 +556,241 @@ public class QuerydslBasicTest {
   }
 
 
+  @DisplayName("withoutFetchJoin")
+  @Test
+  public void withoutFetchJoin() throws Exception{
+    // Given
+    em.flush();
+    em.clear();
+
+    // Then
+    Member foundMember = queryFactory
+        .selectFrom(member)
+        .where(member.name.eq("member-A-1"))
+        .fetchOne();
+
+    boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(foundMember.getTeam());
+
+    assertThat(isLoaded).as("Fetch Join 미적용").isFalse();
+  }
 
 
+  @DisplayName("withFetchJoin")
+  @Test
+  public void withFetchJoin() throws Exception{
+    // Given
+    em.flush();
+    em.clear();
 
+    // Then
+    Member foundMember = queryFactory
+        .selectFrom(member)
+        .join(member.team, team).fetchJoin() // fetchJoin 사용
+        .where(member.name.eq("member-A-1"))
+        .fetchOne();
+
+    boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(foundMember.getTeam());
+
+    assertThat(isLoaded).as("Fetch Join 적용").isTrue();
+  }
+
+
+  /**
+   * <h3>SubQuery</h3>
+   * <pre>
+   *   - Alias 중복피하기위해, SubQuery Depth에 맞게 QClass 생성.
+   *   - `SELECT 절`, `WHERE 절` 사용 가능.
+   *   - 한계: `FROM 절`에서 subQuery 지원하지 않음.
+   *     => WHY ? JPQL에서 지원하지 않음
+   *     => queryDSL은, JPQL BUILDER역할을 할 뿐이므로, JPQL에서 지원하지 않으면, 별 수 없다.
+   *
+   *
+   *    * `FROM 절` SubQuery 미지원에 대한 해결책
+   *     1. SubQuery를 JOIN 으로 변경 ( 불가능한 상황도 있다.)
+   *     2. App에서 Query를 (2회) 분리하여 실행
+   *     3. native SQL 사용
+   * </pre>
+   */
+  @DisplayName("subQuery - ex) 나이가 가장 많은 회원 조회")
+  @Test
+  public void subQuery() throws Exception{
+
+    // Given / When
+    QMember memberSub = new QMember("memberSub");// Alias 중복을 피하기 위해 생성
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .where(member.age.eq(
+            JPAExpressions
+                .select(memberSub.age.max())
+                .from(memberSub)
+        ), member.team.name.eq("teamA"))
+        .fetch();
+
+    // Then
+    assertThat(result)
+        .extracting("age")
+        .containsExactly(20);
+  }
+
+
+  @DisplayName("subQuery - Greater or Equal: 나이가 평균 이상인 회원")
+  @Test
+  public void subQueryGoe() throws Exception{
+
+    // Given / When
+    QMember memberSub = new QMember("memberSub");// Alias 중복을 피하기 위해 생성
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .where(member.age.goe(
+            JPAExpressions.select(memberSub.age.avg())
+                .from(memberSub)
+        ), member.team.name.eq("teamA"))
+        .fetch();
+
+    // Then
+    System.out.println("result = " + result);
+    assertThat(result)
+        .extracting("age")
+        .containsExactly(20);
+
+  }
+
+
+  @DisplayName("subQuery - IN절: 특정 나이인 회원")
+  @Test
+  public void subQueryIn() throws Exception{
+
+    // Given / When
+    QMember memberSub = new QMember("memberSub");// Alias 중복을 피하기 위해 생성
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .where(member.age.in(
+            JPAExpressions
+                .select(memberSub.age)
+                .from(memberSub)
+                .where(memberSub.age.gt(7))
+        ), member.team.name.eq("teamA"))
+        .fetch();
+
+    // Then
+    System.out.println("result = " + result);
+    assertThat(result)
+        .extracting("age")
+        .containsExactly(10, 20);
+  }
+
+
+  @DisplayName("subQueryInSelect절")
+  @Test
+  public void subQueryInSelect절() throws Exception{
+    // Given / When
+    QMember memberSub = new QMember("memberSub");// Alias 중복을 피하기 위해 생성
+    List<Tuple> result = queryFactory
+        .select(
+            member.name,
+            JPAExpressions
+                .select(memberSub.age.avg())
+                .from(memberSub)
+        )
+        .from(member)
+        .fetch();
+
+    // Then
+
+    for (Tuple tuple : result) {
+      System.out.println("tuple = " + tuple);
+    }
+  }
+
+
+  /**
+   * <pre>
+   *   CASE문은 가급적 사용하지 마시라.
+   *   Presentation Logic에서 해결가능하다면, 더더욱.</pre>
+   */
+  @DisplayName("`CASE` 문 - 기본 CASE")
+  @Test
+  public void basicCase() throws Exception{
+    // Given
+    List<String> result = queryFactory
+        .select(member.age
+            .when(10).then("열살")
+            .when(20).then("스무살")
+            .otherwise("기타")
+        )
+        .from(member)
+        .fetch();
+
+    // Then
+    for (String s : result) {
+      System.out.println("----- s = " + s);
+    }
+
+  }
+
+
+  @DisplayName("`CASE` 문 - 복잡한 CASE")
+  @Test
+  public void complexCase() throws Exception{
+    // Given
+    List<String> result = queryFactory
+        .select(
+            new CaseBuilder()
+            .when(member.age.between(0,10)).then("0~열 살")
+            .when(member.age.between(0,220)).then("0~스무 살")
+            .otherwise("기타")
+        )
+        .from(member)
+        .fetch();
+
+    // Then
+    for (String s : result) {
+      System.out.println("----- s = " + s);
+    }
+
+  }
+
+
+  /**
+   * <h2>CONCAT: 문자 더하기 </h2>
+   * <pre>
+   *   `stringValue()`: 문자가 아닌 타입들을 문자로 변환가능 (Int, ENUM 등)
+   * </pre>
+   */
+  @DisplayName("constant")
+  @Test
+  public void constant() throws Exception{
+    // Given
+    List<Tuple> result = queryFactory
+        .select(member.name, Expressions.constant("A"))
+        .from(member)
+        .fetch();
+    // Then
+    for (Tuple tuple : result) {
+      System.out.println("----- tuple = " + tuple);
+    }
+  }
+
+
+  @DisplayName("concat")
+  @Test
+  public void concat() throws Exception{
+    // Given
+    List<String> result = queryFactory
+        .select(member.name.concat("_").concat(member.age.stringValue()))
+        .from(member)
+        .where(member.name.eq("member-A-1"))
+        .fetch();
+
+
+    for (String s : result) {
+      System.out.println("----- s = " + s);
+    }
+    // When
+
+    // Then
+
+  }
 
 // #################################################################
 // #################################################################
