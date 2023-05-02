@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.domain.Member;
@@ -1107,6 +1108,105 @@ public class QuerydslBasicTest {
   
   private BooleanExpression allEq_exampleOfRefactoring(String nameCond, Integer ageCond) {
     return nameEq(nameCond).and(ageEq(ageCond));
+  }
+  
+  
+  /**
+   * <h2>BULK Query - 수정, 삭제 시 벌크 연산</h2>
+   * <pre>
+   *  [주의] 벌크 연산은 영속성 Context 무시하고, DB에 Query 날림
+   *    => 영속성 Context & DB 불일치 발생.
+   *
+   *
+   *  [팁] Bulk Query 실행 후, em.flush() / em.clear() 사용
+   *     => 영속성 Context & DB 동기화 위함.
+   *
+   *
+   *  - return 값 : 벌크 연산에 영향을 받은 row 수</pre>
+   */
+  @DisplayName("bulkUpdate")
+  @Test
+  public void bulkUpdate() throws Exception{
+
+    
+    long count = queryFactory
+        .update(member)
+        .set(member.name, "비회원")
+        .where(member.age.lt(18))
+        .execute();
+    
+    // 영속성 Context
+    // member-A-1 => member-A-1
+    // member-A-2 => member-A-2
+    // member-B-2 => member-B-1
+    // member-B-2 => member-B-2
+    
+    // DB
+    // member-A-1 => 비회원
+    // member-A-2 => member-A-2
+    // member-B-2 => 비회원
+    // member-B-2 => member-B-2
+    
+    
+    // #################################
+    // 벌크 연산 후, DB와 영속성 Context 동기화를 위해 flush() & clear()
+    em.flush();
+    em.clear();
+    // #################################
+    
+    
+    
+    List<Member> result = queryFactory
+        .selectFrom(member)
+        .fetch();
+    
+    for (Member member : result) {
+      System.out.println("member = " + member);
+      
+    }
+  }
+  
+  /**
+   * <h2>Bulk Query - 기타 기능 - 사칙연산</h2>
+   * <pre>
+   *   사칙연산 메서드: add, subtract, multiply, divide</pre>
+   */
+  @DisplayName("bulkAdd")
+  @Test
+  public void bulkAdd() throws Exception{
+    // Given
+    long count = queryFactory
+        .update(member)
+        .set(member.age, member.age.divide(3))
+        .execute();
+
+    // 잊지마시라.
+    // Bulk Query 후, 영속성 Context 초기화.
+    em.flush();
+    em.clear();
+  
+  }
+  
+  
+  /**
+   * <h2>Bulk Query</h2>
+   * @throws Exception
+   */
+  @DisplayName("bulkDelete")
+  @Test
+  public void bulkDelete() throws Exception{
+    // Given
+    long count = queryFactory
+        .delete(member)
+        .where(member.age.lt(18))
+        .execute();
+    
+    
+    // 잊지마시라.
+    // Bulk Query 후, 영속성 Context 초기화.
+    em.flush();
+    em.clear();
+    
   }
 
 
