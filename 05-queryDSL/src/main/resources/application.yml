@@ -4,17 +4,13 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-
   jpa:
     hibernate:
       ddl-auto: create # create, update, none
     properties:
       hibernate:
-        show_sql: true # System.out 출력 query
         format_sql: true
-  #      default_batch_fetch_size: 100
-
-
+        show_sql: true
   data:
     web:
       pageable:
@@ -26,7 +22,6 @@ spring:
       additional-paths: /src/main/resources
       poll-interval: 50 # ClassPath 변경에 대한 Polling 주기
       quiet-period: 10 # 재시작 트리거 전, Class Path 변경 지연 시간
-
 logging.level:
   org.hibernate.SQL: debug
 #  org.hibernate.type: trace
