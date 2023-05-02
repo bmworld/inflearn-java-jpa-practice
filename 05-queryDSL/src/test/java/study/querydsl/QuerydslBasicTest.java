@@ -1,10 +1,12 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -882,7 +884,6 @@ public class QuerydslBasicTest {
   }
   
   
-  
   /**
    * <h2>Query DSL x DTO 조회 - FIELD </h2>
    * <pre>
@@ -927,8 +928,8 @@ public class QuerydslBasicTest {
         .select(Projections.fields(AnotherMemberDto.class,
                 member.name.as("username"),
                 ExpressionUtils.as(JPAExpressions
-                .select(memberSub.age.max())
-                .from(memberSub), "age"
+                    .select(memberSub.age.max())
+                    .from(memberSub), "age"
                 )
             )
         )
@@ -939,9 +940,6 @@ public class QuerydslBasicTest {
       System.out.println("----- find Dto by FIELD in querydsl ==>  memberDto = " + memberDto);
     }
   }
-  
-  
-  
   
   
   /**
@@ -1011,7 +1009,7 @@ public class QuerydslBasicTest {
    */
   @DisplayName("findDtoByQueryProjection")
   @Test
-  public void findDtoByQueryProjection() throws Exception{
+  public void findDtoByQueryProjection() throws Exception {
     // Given
     List<MemberWithQueryProjectionDto> result = queryFactory
         .select(new QMemberWithQueryProjectionDto(member.name, member.age))
@@ -1023,12 +1021,95 @@ public class QuerydslBasicTest {
     for (MemberWithQueryProjectionDto memberWithQueryProjectionDto : result) {
       System.out.println("---- memberWithQueryProjectionDto = " + memberWithQueryProjectionDto);
     }
+    
+  }
   
+  
+  /**
+   * <h2>동적 Query - Boolean Builder</h2>
+   * @BooleanBuilder : condition값이 null일 경우에는 WHERE 절에서 해당 조건을 제외시키고, 그 반대는 포함시킴.
+   */
+  @DisplayName("dynamicQuery_BooleanBuilder")
+  @Test
+  public void dynamicQuery_BooleanBuilder() throws Exception {
+    // Given / When
+    String nameParam = "member-A-1"; // null 일 경우
+    Integer ageParam = 10;
+    // Then
+    List<Member> result = searchMember_by_BooleanBuilder(nameParam, ageParam);
+    assertThat(result.size()).isEqualTo(1);
+    
+  }
+  
+  private List<Member> searchMember_by_BooleanBuilder(String nameCond, Integer ageCond) {
+    // 동적쿼리 생성한다.
+    BooleanBuilder builder = new BooleanBuilder();
+    
+    if (nameCond != null) {
+      builder.and(member.name.eq(nameCond));
+    }
+    
+    if (ageCond != null) {
+      builder.and(member.age.eq(ageCond));
+    }
+    
+    return queryFactory
+        .selectFrom(member)
+        .where(builder)
+        .fetch();
   }
   
   
   
+  /**
+   * <h2>동적 Query - Where Parameter</h2>
+   * <pre>
+   *   - WHERE 절 내에서 콤마(,) 구분 => 여러 조건 추가 가능
+   *   - WHERE 절 내에서 null 값 무시됨.
+   *   - 장점
+   *     1. Query 조합 가능 ( WHERE 조건 `조립`)
+   *        (Java code를 사용한 QueryDSL의 위엄을 보시라.)
+   *     2. Query 재활용 가능 (Method로 추출할 경우)
+   *     3. Query 가독성 증대
+   *</pre>
+   *
+   */
+  @DisplayName("dynamicQuery_WherePram")
+  @Test
+  public void dynamicQuery_WherePram() throws Exception {
+    // Given / When
+    String nameParam = "member-A-1"; // null 일 경우
+    Integer ageParam = 10;
+    // Then
+    List<Member> result = searchMember_by_WhereParam(nameParam, ageParam);
+    assertThat(result.size()).isEqualTo(1);
+    
+  }
   
+  
+  private List<Member> searchMember_by_WhereParam(String nameCond, Integer ageCond) {
+    // 동적쿼리 생성한다.
+  
+    return queryFactory
+        .selectFrom(member)
+//        .where(nameEq(nameCond), ageEq(ageCond))
+        .where(allEq_exampleOfRefactoring(nameCond, ageCond)) // SQL 조건을 JAVA CODE로 조립할 수 있다!!
+        .fetch();
+  }
+  
+  private BooleanExpression nameEq(String nameCond) {
+    return nameCond != null ? member.name.eq(nameCond) : null;
+  }
+  
+  private BooleanExpression ageEq(Integer ageCond) {
+    return ageCond != null ? member.age.eq(ageCond) : null;
+  }
+  
+  private BooleanExpression allEq_exampleOfRefactoring(String nameCond, Integer ageCond) {
+    return nameEq(nameCond).and(ageEq(ageCond));
+  }
+
+
 // #################################################################
 // #################################################################
 // #################################################################
