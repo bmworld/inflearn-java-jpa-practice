@@ -1208,7 +1208,51 @@ public class QuerydslBasicTest {
     em.clear();
     
   }
-
+  
+  
+  
+  
+  
+  @DisplayName("sqlFunction_1")
+  @Test
+  public void sqlFunction_1() throws Exception{
+    // Given
+    List<String> result = queryFactory
+        .select(
+            Expressions.stringTemplate(
+                "function('replace', {0}, {1}, {2})",
+                member.name, "member", "M`")
+        )
+        .from(member)
+        .fetch();
+    
+    for (String s : result) {
+      System.out.println("----- s = " + s);
+    }
+  }
+  
+  
+  @DisplayName("sqlFunction_2")
+  @Test
+  public void sqlFunction_2() throws Exception{
+    // Given
+    List<Member> result = queryFactory
+        .select(member)
+        .from(member)
+        // - DB 기본 내장된 Function Ver.
+//        .where(
+//            member.name.eq(
+//                Expressions.stringTemplate("function('lower', {0})", member.name)
+//            )
+//        )
+        // - QueryDSL 제공 Ver.
+        .where(member.name.eq(member.name.lower()))
+        .fetch();
+    
+    for (Member s : result) {
+      System.out.println("----- s = " + s);
+    }
+  }
 
 // #################################################################
 // #################################################################
