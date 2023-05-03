@@ -1,0 +1,3 @@
+
+GET http://localhost:8080/v3/members?name=member&page=0&size=200
+Content-Type: application/json

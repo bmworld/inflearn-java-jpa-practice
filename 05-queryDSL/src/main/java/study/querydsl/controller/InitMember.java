@@ -47,7 +47,7 @@ public class InitMember {
       for (int i = 0; i < 100; i++) {
         Team selectedTeam = i % 2 == 0 ? teamA : teamB;
         int age = 10 + i;
-        Member member = new Member("member" + i + 1, age, selectedTeam);
+        Member member = new Member("member-" + (i + 1), age, selectedTeam);
         em.persist(member);
       }
     }
