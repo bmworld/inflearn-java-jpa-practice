@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.domain.Member;
+import study.querydsl.domain.QMember;
 import study.querydsl.domain.Team;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
@@ -132,6 +133,30 @@ public class MemberRepositoryTest {
     assertThat(result.getContent()).extracting("name")
         .containsExactly(searchKeywordOfName+"-1", searchKeywordOfName+"-2");
     
+  }
+  
+  
+  /**
+   * <h3>QueryDSL 에서 제공하는 조건문 Query</h3>
+   * <pre>
+   *   - 복잡한 실무환경에서 사용하기 부적합
+   *   - 이유1. JOIN 불가 (묵시적 조인은 가능)
+   *   - 이유2. Client가 QueryDSL에 의존해야함 -> 서비스 class가 Querydsl이라는 구현에 의존해야함.
+   * </pre>
+   */
+  @DisplayName("querydslExecutorTest")
+  @Test
+  public void querydslExecutorTest() throws Exception{
+    // Given
+    QMember member = QMember.member;
+    Iterable<Member> result = memberRepository.findAll(member.age.between(20, 30).and(member.name.eq("member-A-2")));
+    for (Member m : result) {
+      System.out.println("----- m = " + m);
+    }
+    // When
+    
+    // Then
+  
   }
 
 
