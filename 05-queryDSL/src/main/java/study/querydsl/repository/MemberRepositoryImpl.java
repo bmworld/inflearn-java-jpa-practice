@@ -2,11 +2,13 @@ package study.querydsl.repository;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.domain.Member;
 import study.querydsl.dto.MemberSearchCondition;
@@ -20,14 +22,31 @@ import static org.springframework.util.StringUtils.hasText;
 import static study.querydsl.domain.QMember.member;
 import static study.querydsl.domain.QTeam.team;
 
-public class MemberRepositoryImpl implements MemberRepositoryCustom{
+public class MemberRepositoryImpl extends QuerydslRepositorySupport implements MemberRepositoryCustom{
   
-  private final JPAQueryFactory queryFactory;
   
+    // QuerydslRepositorySupport 사용 시, 없어도 됨 (But, Querydsl 3.x 기준의 Support 이므로, 단점이 분명히 있음)
+    private final JPAQueryFactory queryFactory;
+  /**
+   * <h2>리포지토리 지원 - QuerydslRepositorySupport</h2>
+   * <pre>
+   *   [ 장점 ]
+   *   1. Spring data가 제공하는 Paging을 Querydsl로 편리하게 변환 가능
+   *     (단, sort는 오류 발생함)
+   *   2. EntityManager 제공
+   *
+   *   [ 한계 ]
+   *   1. Querydsl 3.x 버전을 대상으로 만듦
+   *   2. Querydsl 4.x 버전에서 제공된 JPAQueryFactory로 시작할 수 없음
+   *     => select로 시작불가 / from 부터 시작해야함
+   *   3. `QueryFactory` 미제공
+   *   4. Spring Data 의 sort 기능의 오류 있음
+   * </pre>
+   */
   public MemberRepositoryImpl(EntityManager em) {
-    this.queryFactory = new JPAQueryFactory(em);
+    super(Member.class);
+    this.queryFactory = new JPAQueryFactory(em); // QuerydslRepositorySupport 사용 시, 없어오됨
   }
-  
   
   @Override
   public List<MemberTeamDto> searchMemberTeamDtoByWhereCond(MemberSearchCondition cond) {
@@ -50,6 +69,27 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
         .fetch();
   }
   
+  
+  public List<MemberTeamDto> searchMemberTeamDtoByWhereCondByQuerydslRepositorySupport(MemberSearchCondition cond) {
+    return from(member)
+        .leftJoin(member.team, team)
+        .where(
+            userNameContains(cond.getName()),
+            teamNameEq(cond.getTeamName()),
+            ageGoe(cond.getAgeGoe()),
+            ageLoe(cond.getAgeLoe())
+        )
+        .select(new QMemberTeamDto(
+            member.id.as("memberId"),
+            member.name,
+            member.age,
+            team.id.as("teamId"),
+            team.name.as("teamName")
+        ))
+        .fetch();
+  }
+  
+ 
   
   /**
    * <h2>최적화 방법 - Count Query & 조회 Query 분리</h2>
@@ -96,6 +136,45 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     
     return new PageImpl<>(content, pageable, total);
     
+  }
+  
+  
+  
+  public Page<MemberTeamDto> searchPageSimpleByQuerydslRepositorySupport(MemberSearchCondition cond, Pageable pageable) {
+    
+    JPQLQuery<MemberTeamDto> jpaQuery = from(member)
+        .leftJoin(member.team, team)
+        .where(
+            userNameContains(cond.getName()),
+            teamNameEq(cond.getTeamName()),
+            ageGoe(cond.getAgeGoe()),
+            ageLoe(cond.getAgeLoe())
+        )
+        .select(new QMemberTeamDto(
+            member.id.as("memberId"),
+            member.name,
+            member.age,
+            team.id.as("teamId"),
+            team.name.as("teamName")
+        ));
+    
+    JPQLQuery<MemberTeamDto> query = getQuerydsl().applyPagination(pageable, jpaQuery);
+    
+    List<MemberTeamDto> content = query.fetch();
+    
+    
+    long total = queryFactory
+        .selectFrom(member)
+        .leftJoin(member.team, team)
+        .where(
+            userNameContains(cond.getName()),
+            teamNameEq(cond.getTeamName()),
+            ageGoe(cond.getAgeGoe()),
+            ageLoe(cond.getAgeLoe())
+        ).fetchCount();
+    
+    
+    return new PageImpl<>(content, pageable, total);
   }
   
   @Override
@@ -160,4 +239,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
   private BooleanExpression ageLoe(Integer ageLoe) {
     return ageLoe != null ? member.age.loe(ageLoe) : null;
   }
+  
+  
 }
